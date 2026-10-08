@@ -77,7 +77,7 @@ export const StatusTimeline = ({ status, compact = false }: { status: DeliverySt
                 }}
               >
                 {done ? (
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                  <Ionicons name="checkmark" size={14} color={theme.colors.onPrimary} />
                 ) : active ? (
                   <ActiveDot />
                 ) : null}
@@ -102,6 +102,7 @@ export const StatusTimeline = ({ status, compact = false }: { status: DeliverySt
 };
 
 const ActiveDot = () => {
+  const theme = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -113,7 +114,7 @@ const ActiveDot = () => {
     loop.start();
     return () => loop.stop();
   }, [scale]);
-  return <Animated.View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FFFFFF', transform: [{ scale }] }} />;
+  return <Animated.View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: theme.colors.onPrimary, transform: [{ scale }] }} />;
 };
 
 export const ProgressIndicator = ({ progress, label }: { progress: number; label?: string }) => {

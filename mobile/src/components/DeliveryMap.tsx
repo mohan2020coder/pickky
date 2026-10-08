@@ -178,7 +178,7 @@ export const DeliveryMap = ({
             accessibilityLabel="Rider location"
             flat
           >
-            <View style={[styles.rider, { backgroundColor: theme.colors.primary, borderColor: '#FFFFFF' }]}>
+            <View style={[styles.rider, { backgroundColor: theme.colors.primary, borderColor: theme.colors.onPrimary }]}>
               <AppText style={{ fontSize: 12 }}>🛵</AppText>
             </View>
           </Marker.Animated>

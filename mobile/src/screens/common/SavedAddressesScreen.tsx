@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet, Pressable } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../theme';
-import { AppText, Button, Card, ConfirmDialog, Screen, ScreenHeader } from '../../components';
+import { AppText, Button, Card, ConfirmDialog, EmptyView, Entrance, IconButton, Screen, ScreenFooter, ScreenHeader } from '../../components';
 import { useSavedAddresses, useCreateSavedAddress, useDeleteSavedAddress } from '../../hooks/queries';
 import { useBookingStore } from '../../stores/bookingStore';
 import { toast } from '../../stores/uiStore';
@@ -62,49 +62,71 @@ export const SavedAddressesScreen = ({ navigation }: Props) => {
 
   return (
     <Screen>
-      <ScreenHeader
-        title="Saved addresses"
-        subtitle="Quick pickup points"
-        onBack={() => navigation.goBack()}
-        right={<Button label="Add current" variant="ghost" size="sm" icon="add" onPress={() => handleUseMyCurrentLocation()} loading={create.isPending} />}
-      />
+      <ScreenHeader title="Saved addresses" subtitle="Quick pickup points" onBack={() => navigation.goBack()} />
       <FlatList
         data={addresses}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, addresses.length === 0 ? styles.listEmpty : null]}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingVertical: theme.spacing.xl * 2 }}>
-            <Ionicons name="location-outline" size={40} color={theme.colors.textMuted} />
-            <AppText variant="heading3" center style={{ marginTop: theme.spacing.md }}>No saved addresses</AppText>
-            <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm }}>
-              Save the places you pick up from most, then reuse them with one tap.
-            </AppText>
-          </View>
+          <EmptyView
+            icon="location-outline"
+            title="No saved addresses"
+            message="Save the places you pick up from most, then reuse them with one tap."
+            actionLabel="Add current location"
+            onAction={() => handleUseMyCurrentLocation()}
+          />
         }
-        renderItem={({ item }) => (
-          <Card key={item.id} style={{ marginBottom: theme.spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="location" size={18} color={theme.colors.primary} style={{ marginRight: theme.spacing.sm }} />
-              <View style={{ flex: 1 }}>
-                <AppText variant="body" weight="700">{item.label}</AppText>
-                <AppText variant="caption" tone="secondary">{item.address}</AppText>
-                <View style={{ flexDirection: 'row', gap: 8, marginTop: theme.spacing.sm }}>
-                  <Button label="Use as pickup" variant="secondary" size="sm" onPress={() => useForPickup(item)} />
+        renderItem={({ item, index }) => (
+          <Entrance delay={Math.min(index, 8) * 60}>
+            <Card style={{ marginBottom: theme.spacing.md }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 13,
+                    backgroundColor: theme.colors.primarySoft,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: theme.spacing.md,
+                  }}
+                >
+                  <Ionicons name="location" size={18} color={theme.colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <AppText variant="label" weight="800">
+                    {item.label}
+                  </AppText>
+                  <AppText variant="bodySmall" tone="secondary" style={{ marginTop: 2 }}>
+                    {item.address}
+                  </AppText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: theme.spacing.md }}>
+                    <Button label="Use as pickup" variant="secondary" size="sm" icon="navigate-outline" onPress={() => useForPickup(item)} />
+                    <IconButton
+                      icon="trash-outline"
+                      color={theme.colors.error}
+                      background={theme.colors.errorSoft}
+                      size={38}
+                      accessibilityLabel={`Delete ${item.label}`}
+                      onPress={() => setPendingDelete(item.id)}
+                    />
+                  </View>
                 </View>
               </View>
-              <Pressable
-                onPress={() => setPendingDelete(item.id)}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={`Delete ${item.label}`}
-                style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 6 })}
-              >
-                <Ionicons name="trash-outline" size={18} color={theme.colors.error} />
-              </Pressable>
-            </View>
-          </Card>
+            </Card>
+          </Entrance>
         )}
       />
+      <ScreenFooter>
+        <Button
+          label="Add current location"
+          icon="add"
+          loading={create.isPending}
+          onPress={() => handleUseMyCurrentLocation()}
+          accessibilityLabel="Add current location to saved addresses"
+        />
+      </ScreenFooter>
       <ConfirmDialog
         visible={!!pendingDelete}
         title="Delete address?"
@@ -119,5 +141,6 @@ export const SavedAddressesScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 20, paddingBottom: 24 },
+  list: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 24 },
+  listEmpty: { flexGrow: 1, justifyContent: 'center' },
 });

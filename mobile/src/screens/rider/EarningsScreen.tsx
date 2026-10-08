@@ -1,9 +1,19 @@
 import React from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { EarningsStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Button, Card, DeliveryCard, Screen, ScreenHeader, SectionHeader } from '../../components';
+import {
+  AppText,
+  Button,
+  DeliveryCard,
+  Entrance,
+  Screen,
+  ScreenHeader,
+  SectionHeader,
+  Stagger,
+  StatCard,
+} from '../../components';
 import { useEarnings, useRiderDeliveries } from '../../hooks/queries';
 import { formatMoney } from '../../utils/format';
 
@@ -17,40 +27,41 @@ export const EarningsScreen = ({ navigation }: Partial<Props>) => {
   const currency = earnings?.currency;
   const recent = deliveries.slice(0, 5);
 
-  const Row = ({ label, amount, count }: { label: string; amount: number; count?: number }) => (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: theme.spacing.md }}>
-      <View>
-        <AppText variant="body" tone="secondary">
-          {label}
-        </AppText>
-        {count !== undefined ? (
-          <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
-            {count} {count === 1 ? 'delivery' : 'deliveries'}
-          </AppText>
-        ) : null}
-      </View>
-      <AppText variant="heading3" color={theme.colors.primary}>
-        {formatMoney(amount, currency)}
-      </AppText>
-    </View>
-  );
-
   return (
     <Screen>
       <ScreenHeader large title="Earnings" subtitle="Your payouts across today, this week and this month" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Card>
-          <AppText variant="label" tone="secondary">
-            Summary
-          </AppText>
-          <Row label="Today" amount={earnings?.today_minor ?? 0} count={earnings?.deliveries_today ?? 0} />
-          <Row label="This week" amount={earnings?.week_minor ?? 0} count={earnings?.deliveries_week ?? 0} />
-          <Row label="This month" amount={earnings?.month_minor ?? 0} />
-          <View style={{ height: 1, backgroundColor: theme.colors.divider, marginTop: theme.spacing.lg }} />
-          <AppText variant="caption" tone="muted" style={{ marginTop: theme.spacing.sm }}>
-            Earnings are credited after each completed delivery.
-          </AppText>
-        </Card>
+        <Stagger step={80} style={styles.grid} itemStyles={[styles.full, styles.half, styles.half]}>
+          <StatCard
+            accent
+            gradient="success"
+            icon="flash"
+            label="Today"
+            value={formatMoney(earnings?.today_minor ?? 0, currency)}
+            hint={`${earnings?.deliveries_today ?? 0} deliveries`}
+          />
+          <StatCard
+            gradient="primary"
+            icon="calendar"
+            label="This week"
+            value={formatMoney(earnings?.week_minor ?? 0, currency)}
+            hint={`${earnings?.deliveries_week ?? 0} deliveries`}
+          />
+          <StatCard
+            gradient="sunset"
+            icon="trending-up"
+            label="This month"
+            value={formatMoney(earnings?.month_minor ?? 0, currency)}
+          />
+        </Stagger>
+
+        <Entrance delay={120}>
+          <View style={styles.note}>
+            <AppText variant="caption" tone="muted">
+              Earnings are credited after each completed delivery.
+            </AppText>
+          </View>
+        </Entrance>
 
         <View style={{ marginTop: theme.spacing.xl }}>
           <SectionHeader title="Recent deliveries" />
@@ -59,13 +70,14 @@ export const EarningsScreen = ({ navigation }: Partial<Props>) => {
               Completed deliveries will show up here.
             </AppText>
           ) : (
-            recent.map((delivery) => (
-              <DeliveryCard
-                key={delivery.id}
-                delivery={delivery}
-                onPress={() => navigation?.navigate('DeliveryDetails', { deliveryId: delivery.id })}
-                style={{ marginBottom: theme.spacing.md }}
-              />
+            recent.map((delivery, index) => (
+              <Entrance key={delivery.id} delay={140 + index * 60}>
+                <DeliveryCard
+                  delivery={delivery}
+                  onPress={() => navigation?.navigate('DeliveryDetails', { deliveryId: delivery.id })}
+                  style={{ marginBottom: theme.spacing.md }}
+                />
+              </Entrance>
             ))
           )}
         </View>
@@ -84,4 +96,8 @@ export const EarningsScreen = ({ navigation }: Partial<Props>) => {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  full: { width: '100%', marginBottom: 12 },
+  half: { width: '48%', marginBottom: 12 },
+  note: { marginTop: 4 },
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
+import { Gradient } from './Gradient';
 import { initialsOf } from '../utils/format';
 
 type AvatarProps = {
@@ -14,10 +15,7 @@ type AvatarProps = {
 
 export const Avatar = ({ name, size = 48, ring = false, style }: AvatarProps) => {
   const theme = useTheme();
-  const background = ring ? theme.colors.primarySoft : theme.colors.surfaceElevated;
-  const color = ring ? theme.colors.primary : theme.colors.textSecondary;
-
-  return (
+  const content = (
     <View
       accessibilityLabel={name ? `${name} avatar` : 'Avatar'}
       style={[
@@ -25,23 +23,46 @@ export const Avatar = ({ name, size = 48, ring = false, style }: AvatarProps) =>
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: background,
+          backgroundColor: ring ? theme.colors.primary : theme.colors.surfaceElevated,
           alignItems: 'center',
           justifyContent: 'center',
-          borderWidth: 1.5,
-          borderColor: theme.colors.border,
           overflow: 'hidden',
+          borderWidth: ring ? 0 : 1.5,
+          borderColor: theme.colors.border,
         },
         style,
       ]}
     >
       <AppText
-        style={{ fontSize: size * 0.36, fontWeight: '700', color }}
+        style={{
+          fontSize: size * 0.36,
+          fontWeight: '800',
+          color: ring ? theme.colors.onPrimary : theme.colors.textSecondary,
+        }}
         numberOfLines={1}
       >
         {initialsOf(name)}
       </AppText>
     </View>
+  );
+
+  if (!ring) return content;
+
+  return (
+    <Gradient
+      preset="primary"
+      style={{
+        width: size + 5,
+        height: size + 5,
+        borderRadius: (size + 5) / 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 2.5,
+        ...theme.shadows.low,
+      }}
+    >
+      {content}
+    </Gradient>
   );
 };
 

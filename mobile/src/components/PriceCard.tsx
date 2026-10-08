@@ -27,8 +27,9 @@ export const PriceCard = ({ totalMinor, currency = 'INR', rows, etaMinutes, dist
           backgroundColor: theme.colors.surface,
           borderRadius: theme.radius.large,
           borderWidth: 1,
-          borderColor: theme.colors.border,
+          borderColor: theme.colors.divider,
           padding: theme.spacing.xl,
+          ...theme.shadows.medium,
         },
         style,
       ]}
@@ -50,8 +51,21 @@ export const PriceCard = ({ totalMinor, currency = 'INR', rows, etaMinutes, dist
         </View>
       ))}
       <View style={{ height: 1, backgroundColor: theme.colors.divider, marginVertical: theme.spacing.md }} />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <AppText variant="heading3">{emphasis === 'total' ? 'Total' : 'Estimated fare'}</AppText>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: theme.colors.primarySoft,
+          borderRadius: theme.radius.medium,
+          paddingVertical: theme.spacing.md,
+          paddingHorizontal: theme.spacing.lg,
+          marginTop: theme.spacing.sm,
+        }}
+      >
+        <AppText variant="heading3" style={{ fontSize: 16 }}>
+          {emphasis === 'total' ? 'Total' : 'Estimated fare'}
+        </AppText>
         <AppText variant="price" color={theme.colors.primary} accessibilityRole="text">
           {formatMoney(totalMinor, currency)}
         </AppText>

@@ -3,6 +3,7 @@ import { Pressable, StyleProp, TextInput, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
+import { Gradient } from './Gradient';
 import { Message } from '../types';
 import { formatTime } from '../utils/format';
 
@@ -29,24 +30,42 @@ export const ChatBubble = ({ message, isMine, showTime = true, style }: ChatBubb
         style,
       ]}
     >
-      <View
-        accessibilityRole="text"
-        accessibilityLabel={`${isMine ? 'You' : 'Them'} said: ${message.body}`}
-        style={{
-          backgroundColor: isMine ? theme.colors.primary : theme.colors.surface,
-          borderWidth: isMine ? 0 : 1,
-          borderColor: theme.colors.border,
-          borderRadius: theme.radius.large,
-          borderBottomRightRadius: isMine ? theme.radius.small : theme.radius.large,
-          borderBottomLeftRadius: isMine ? theme.radius.large : theme.radius.small,
-          paddingHorizontal: theme.spacing.lg,
-          paddingVertical: theme.spacing.md,
-        }}
-      >
-        <AppText variant="body" color={isMine ? '#FFFFFF' : theme.colors.textPrimary}>
-          {message.body}
-        </AppText>
-      </View>
+      {isMine ? (
+        <Gradient
+          preset="primary"
+          style={{
+            borderRadius: theme.radius.large,
+            borderBottomRightRadius: theme.radius.small,
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.md,
+            shadowColor: theme.colors.primary,
+            shadowOpacity: 0.25,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 3,
+          }}
+        >
+          <AppText variant="body" color={theme.colors.onPrimary}>
+            {message.body}
+          </AppText>
+        </Gradient>
+      ) : (
+        <View
+          accessibilityRole="text"
+          accessibilityLabel={`Them said: ${message.body}`}
+          style={{
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.divider,
+            borderRadius: theme.radius.large,
+            borderBottomLeftRadius: theme.radius.small,
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.md,
+          }}
+        >
+          <AppText variant="body">{message.body}</AppText>
+        </View>
+      )}
       {showTime ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, alignSelf: isMine ? 'flex-end' : 'flex-start', gap: 4 }}>
           <AppText variant="caption" tone="muted">
@@ -120,9 +139,16 @@ export const MessageInput = ({ value, onChange, onSend, disabled = false, placeh
           alignItems: 'center',
           justifyContent: 'center',
           opacity: pressed ? 0.8 : 1,
+          overflow: 'hidden',
+          shadowColor: theme.colors.primary,
+          shadowOpacity: canSend ? 0.35 : 0,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: canSend ? 4 : 0,
         })}
       >
-        <Ionicons name="send" size={18} color={canSend ? '#FFFFFF' : theme.colors.textMuted} />
+        {canSend ? <Gradient preset="cta" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} /> : null}
+        <Ionicons name="send" size={18} color={canSend ? theme.colors.onPrimary : theme.colors.textMuted} />
       </Pressable>
     </View>
   );

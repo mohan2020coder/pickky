@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
@@ -60,7 +60,7 @@ export const ScreenHeader = ({
               paddingHorizontal: 3,
             }}
           >
-            <AppText variant="caption" color="#FFFFFF" weight="800" style={{ fontSize: 10 }}>
+            <AppText variant="caption" color={theme.colors.onPrimary} weight="800" style={{ fontSize: 10 }}>
               {iconRight.badge > 99 ? '99+' : iconRight.badge}
             </AppText>
           </View>
@@ -93,16 +93,21 @@ export const ScreenHeader = ({
             accessibilityLabel={backLabel}
             hitSlop={10}
             style={({ pressed }) => ({
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 42,
+              height: 42,
+              borderRadius: 21,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: theme.colors.surface,
-              borderWidth: 1,
+              borderWidth: StyleSheet.hairlineWidth,
               borderColor: theme.colors.border,
               marginRight: theme.spacing.md,
               opacity: pressed ? 0.7 : 1,
+              shadowColor: theme.colors.shadow,
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
             })}
           >
             <Ionicons name="chevron-back" size={20} color={theme.colors.textPrimary} />
@@ -110,7 +115,7 @@ export const ScreenHeader = ({
         ) : null}
         <View style={{ flex: 1 }}>
           {title ? (
-            <AppText variant={large ? 'heading1' : 'heading3'} numberOfLines={1}>
+            <AppText variant={large ? 'heading1' : 'heading3'} weight="800" numberOfLines={1}>
               {title}
             </AppText>
           ) : null}

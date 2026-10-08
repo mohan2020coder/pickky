@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CustomerHomeStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, AppInput, Button, Chip, Screen, ScreenHeader, Card } from '../../components';
+import { AppText, AppInput, Button, Chip, ProgressIndicator, Screen, ScreenFooter, ScreenHeader, Card } from '../../components';
 import { useBookingStore } from '../../stores/bookingStore';
 import { PACKAGE_TYPES, PACKAGE_SIZES } from '../../constants/delivery';
 
@@ -31,65 +31,72 @@ export const PackageDetailsScreen = ({ navigation }: Props) => {
     <Screen>
       <ScreenHeader title="Package details" subtitle="What are we picking up?" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
-        <AppText variant="label" tone="secondary" style={{ marginBottom: theme.spacing.sm }}>
-          What is it?
-        </AppText>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {PACKAGE_TYPES.map((type) => (
-            <Chip
-              key={type.id}
-              label={`${type.icon} ${type.label}`}
-              selected={pkg.package_type === type.id}
-              onPress={() => setPkg({ package_type: type.id })}
-            />
-          ))}
-        </View>
+        <ProgressIndicator progress={2 / 3} label="Step 2 of 3 — Package" />
 
-        <AppText variant="label" tone="secondary" style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
-          Size
-        </AppText>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {PACKAGE_SIZES.map((size) => (
-            <Chip key={size.id} label={size.label} small selected={pkg.package_size === size.id} onPress={() => setPkg({ package_size: size.id })} />
-          ))}
-        </View>
+        <Card style={{ marginTop: theme.spacing.lg }}>
+          <AppText variant="eyebrow" tone="primary">
+            What is it?
+          </AppText>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: theme.spacing.md }}>
+            {PACKAGE_TYPES.map((type) => (
+              <Chip
+                key={type.id}
+                label={`${type.icon} ${type.label}`}
+                selected={pkg.package_type === type.id}
+                onPress={() => setPkg({ package_type: type.id })}
+              />
+            ))}
+          </View>
+        </Card>
 
-        <AppInput
-          label="Description"
-          placeholder="e.g. Laptop charger, brown envelope, 2 bags of groceries"
-          multiline
-          numberOfLines={3}
-          value={pkg.description}
-          onChangeText={(text) => {
-            setPkg({ description: text });
-            if (descriptionError) setDescriptionError(null);
-          }}
-          error={descriptionError}
-          containerStyle={{ marginTop: theme.spacing.xl }}
-        />
-        <View style={{ flexDirection: 'row', gap: 12 }}>
+        <Card style={{ marginTop: theme.spacing.md }}>
+          <AppText variant="eyebrow" tone="primary">
+            Size
+          </AppText>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: theme.spacing.md }}>
+            {PACKAGE_SIZES.map((size) => (
+              <Chip key={size.id} label={size.label} small selected={pkg.package_size === size.id} onPress={() => setPkg({ package_size: size.id })} />
+            ))}
+          </View>
+        </Card>
+
+        <Card style={{ marginTop: theme.spacing.md }}>
           <AppInput
-            label="Quantity"
-            placeholder="1"
-            keyboardType="number-pad"
-            value={String(pkg.quantity)}
+            label="Description"
+            placeholder="e.g. Laptop charger, brown envelope, 2 bags of groceries"
+            multiline
+            numberOfLines={3}
+            value={pkg.description}
             onChangeText={(text) => {
-              const n = Math.max(1, parseInt(text.replace(/\D/g, ''), 10) || 1);
-              setPkg({ quantity: n });
+              setPkg({ description: text });
+              if (descriptionError) setDescriptionError(null);
             }}
-            containerStyle={{ flex: 1 }}
+            error={descriptionError}
           />
-          <AppInput
-            label="Weight (kg, optional)"
-            placeholder="1.5"
-            keyboardType="decimal-pad"
-            value={pkg.weight_kg ? String(pkg.weight_kg) : ''}
-            onChangeText={(text) => setPkg({ weight_kg: parseFloat(text) || undefined })}
-            containerStyle={{ flex: 1.4 }}
-          />
-        </View>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <AppInput
+              label="Quantity"
+              placeholder="1"
+              keyboardType="number-pad"
+              value={String(pkg.quantity)}
+              onChangeText={(text) => {
+                const n = Math.max(1, parseInt(text.replace(/\D/g, ''), 10) || 1);
+                setPkg({ quantity: n });
+              }}
+              containerStyle={{ flex: 1, marginBottom: 0 }}
+            />
+            <AppInput
+              label="Weight (kg, optional)"
+              placeholder="1.5"
+              keyboardType="decimal-pad"
+              value={pkg.weight_kg ? String(pkg.weight_kg) : ''}
+              onChangeText={(text) => setPkg({ weight_kg: parseFloat(text) || undefined })}
+              containerStyle={{ flex: 1.4, marginBottom: 0 }}
+            />
+          </View>
+        </Card>
 
-        <Card elevated={false} onPress={() => setPkg({ fragile: !pkg.fragile })} accessibilityLabel="Fragile, handle with care" style={{ marginTop: theme.spacing.sm }}>
+        <Card variant="outline" onPress={() => setPkg({ fragile: !pkg.fragile })} accessibilityLabel="Fragile, handle with care" style={{ marginTop: theme.spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Ionicons name={pkg.fragile ? 'checkbox' : 'square-outline'} size={20} color={pkg.fragile ? theme.colors.primary : theme.colors.textMuted} />
             <View style={{ marginLeft: theme.spacing.sm, flex: 1 }}>
@@ -101,24 +108,22 @@ export const PackageDetailsScreen = ({ navigation }: Props) => {
           </View>
         </Card>
 
-        <AppInput
-          label="Instructions for rider (optional)"
-          placeholder="Ask for 'Aarav' at the front desk…"
-          multiline
-          numberOfLines={3}
-          value={pkg.instructions}
-          onChangeText={(text) => setPkg({ instructions: text })}
-          containerStyle={{ marginTop: theme.spacing.lg }}
-        />
+        <Card style={{ marginTop: theme.spacing.md }}>
+          <AppInput
+            label="Instructions for rider (optional)"
+            placeholder="Ask for 'Aarav' at the front desk…"
+            multiline
+            numberOfLines={3}
+            value={pkg.instructions}
+            onChangeText={(text) => setPkg({ instructions: text })}
+            containerStyle={{ marginBottom: 0 }}
+          />
+        </Card>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <ScreenFooter>
         <Button label="Continue to price estimate" onPress={continuePress} />
-      </View>
+      </ScreenFooter>
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  footer: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
-});

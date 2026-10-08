@@ -47,13 +47,15 @@ const ToastItem = ({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
           styles.toast,
           {
             backgroundColor: theme.colors.surfaceElevated,
+            borderRadius: theme.radius.large,
             borderLeftColor: toneColor,
             borderLeftWidth: 4,
             shadowColor: theme.colors.shadow,
+            ...theme.shadows.medium,
           },
         ]}
       >
-        <Ionicons name={toneIcon} size={18} color={toneColor} style={{ marginRight: 10 }} />
+        <Ionicons name={toneIcon} size={18} color={toneColor} style={{ marginRight: theme.spacing.sm }} />
         <AppText variant="bodySmall" style={{ flex: 1 }} weight="500">
           {toast.message}
         </AppText>
@@ -80,13 +82,7 @@ const styles = StyleSheet.create({
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
   },
 });

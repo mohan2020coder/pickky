@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Animated, Easing, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
 import { Button, IconName } from './Button';
+import { Gradient } from './Gradient';
 
 export const LoadingView = ({ label = 'Loading…' }: { label?: string }) => {
   const theme = useTheme();
@@ -52,19 +54,20 @@ export const ErrorView = ({
       style={[styles.center, compact && { paddingVertical: theme.spacing.xxl, backgroundColor: 'transparent' }]}
       accessibilityRole="alert"
     >
-      <View
+      <Gradient
+        preset="danger"
         style={{
-          width: 64,
-          height: 64,
-          borderRadius: 32,
-          backgroundColor: theme.colors.errorSoft,
+          width: 72,
+          height: 72,
+          borderRadius: 24,
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: theme.spacing.lg,
+          ...theme.shadows.medium,
         }}
       >
-        <AppText style={{ fontSize: 26 }}>⚠️</AppText>
-      </View>
+        <Ionicons name="alert" size={32} color="#FFFFFF" />
+      </Gradient>
       <AppText variant="heading3" center>
         {title}
       </AppText>
@@ -90,19 +93,21 @@ export const EmptyView = ({ title, message, actionLabel, onAction, icon = 'file-
   const theme = useTheme();
   return (
     <View style={styles.center} accessibilityRole="text">
-      <View
+      <Gradient
+        preset="sheen"
         style={{
-          width: 72,
-          height: 72,
-          borderRadius: 36,
-          backgroundColor: theme.colors.primarySoft,
+          width: 84,
+          height: 84,
+          borderRadius: 28,
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: theme.spacing.lg,
         }}
       >
-        <AppText style={{ fontSize: 30 }}>{icon === 'file-tray-outline' ? '📭' : '✨'}</AppText>
-      </View>
+        <View style={{ width: 64, height: 64, borderRadius: 22, backgroundColor: theme.colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name={icon} size={30} color={theme.colors.primary} />
+        </View>
+      </Gradient>
       <AppText variant="heading3" center>
         {title}
       </AppText>

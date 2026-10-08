@@ -17,10 +17,20 @@ export const OtpInput = ({ length = 4, value, onChange, onComplete, error, disab
   const theme = useTheme();
   const inputs = useRef<Array<TextInput | null>>([]);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const completedRef = useRef(false);
 
   useEffect(() => {
-    if (value.length === length) onComplete?.(value);
-  }, [value, length, onComplete]);
+    if (value.length < length) {
+      completedRef.current = false;
+      return;
+    }
+    if (!completedRef.current) {
+      completedRef.current = true;
+      onCompleteRef.current?.(value);
+    }
+  }, [value, length]);
 
   const handleChange = (text: string, index: number) => {
     const digits = text.replace(/\D/g, '');
@@ -63,9 +73,14 @@ export const OtpInput = ({ length = 4, value, onChange, onComplete, error, disab
               style={[
                 styles.cell,
                 {
-                  borderColor: error ? theme.colors.error : active ? theme.colors.primary : theme.colors.border,
+                  borderColor: error ? theme.colors.error : active ? theme.colors.primary : 'transparent',
                   borderWidth: active ? 2 : 1.5,
-                  backgroundColor: theme.colors.surface,
+                  backgroundColor: char ? theme.colors.surface : theme.colors.surfaceSunken,
+                  shadowColor: theme.colors.primary,
+                  shadowOpacity: active ? 0.25 : 0,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: active ? 4 : 0,
                 },
               ]}
             >

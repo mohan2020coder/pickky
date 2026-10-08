@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthStackParamList } from '../../navigation/types';
-import { AppText, AppInput, Button, ScreenHeader, Screen } from '../../components';
+import { AppText, AppInput, Button, ScreenHeader, Screen, EntranceTop, Entrance, Gradient, Card } from '../../components';
 import { useTheme } from '../../theme';
 import { register } from '../../api/auth';
 import { startSession } from '../../auth/session';
@@ -63,52 +64,83 @@ export const RegisterScreen = ({ navigation }: Props) => {
   return (
     <Screen>
       <ScreenHeader title="Create account" subtitle="Join Pickky in a minute" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxxl }} keyboardShouldPersistTaps="handled">
+        <EntranceTop delay={0}>
+          <Card variant="glass" padded style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.lg }}>
+            <Gradient preset="cta" style={{ width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="cube" size={24} color={theme.colors.onPrimary} />
+            </Gradient>
+            <View style={{ marginLeft: theme.spacing.md, flex: 1 }}>
+              <AppText variant="eyebrow" tone="primary" weight="800">
+                GET STARTED
+              </AppText>
+              <AppText variant="heading3" weight="800" style={{ marginTop: 2 }}>
+                Pickky
+              </AppText>
+            </View>
+          </Card>
+        </EntranceTop>
         {error ? (
-          <AppText variant="bodySmall" tone="error" style={{ marginBottom: theme.spacing.sm }}>
-            {error}
-          </AppText>
+          <Entrance delay={80}>
+            <AppText variant="bodySmall" tone="error" style={{ marginBottom: theme.spacing.sm }}>
+              {error}
+            </AppText>
+          </Entrance>
         ) : null}
-        <Controller
-          control={control}
-          name="name"
-          render={({ field }) => (
-            <AppInput label="Full name" placeholder="Aarav Mehta" leftIcon="person-outline" value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.name?.message ?? null} />
-          )}
-        />
-        <Controller
-          control={control}
-          name="phone"
-          render={({ field }) => (
-            <AppInput label="Mobile number" placeholder="9000000000" leftIcon="call-outline" keyboardType="phone-pad" maxLength={10} value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.phone?.message ?? null} />
-          )}
-        />
-        <Controller
-          control={control}
-          name="email"
-          render={({ field }) => (
-            <AppInput label="Email (optional)" placeholder="you@example.com" leftIcon="mail-outline" autoCapitalize="none" keyboardType="email-address" value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.email?.message ?? null} />
-          )}
-        />
-        <Controller
-          control={control}
-          name="password"
-          render={({ field }) => (
-            <AppInput label="Password" placeholder="Minimum 6 characters" leftIcon="lock-closed-outline" secureTextEntry value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.password?.message ?? null} />
-          )}
-        />
+        <Entrance delay={120}>
+          <Controller
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <AppInput label="Full name" placeholder="Aarav Mehta" leftIcon="person-outline" value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.name?.message ?? null} />
+            )}
+          />
+        </Entrance>
+        <Entrance delay={180}>
+          <Controller
+            control={control}
+            name="phone"
+            render={({ field }) => (
+              <AppInput label="Mobile number" placeholder="9000000000" leftIcon="call-outline" keyboardType="phone-pad" maxLength={10} value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.phone?.message ?? null} />
+            )}
+          />
+        </Entrance>
+        <Entrance delay={240}>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field }) => (
+              <AppInput label="Email (optional)" placeholder="you@example.com" leftIcon="mail-outline" autoCapitalize="none" keyboardType="email-address" value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.email?.message ?? null} />
+            )}
+          />
+        </Entrance>
+        <Entrance delay={300}>
+          <Controller
+            control={control}
+            name="password"
+            render={({ field }) => (
+              <AppInput label="Password" placeholder="Minimum 6 characters" leftIcon="lock-closed-outline" secureTextEntry value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} error={errors.password?.message ?? null} />
+            )}
+          />
+        </Entrance>
 
-        <Button label="Create Account" loading={loading} onPress={handleSubmit(onSubmit)} style={{ marginTop: theme.spacing.sm }} />
+        <Entrance delay={360}>
+          <Button label="Create Account" loading={loading} iconRight="arrow-forward" onPress={handleSubmit(onSubmit)} style={{ marginTop: theme.spacing.sm }} />
+        </Entrance>
 
-        <AppText variant="caption" tone="muted" center style={{ marginTop: theme.spacing.lg }}>
-          By continuing you agree to Pickky&apos;s Terms of Service and Privacy Policy.
-        </AppText>
-        <AppText variant="caption" tone="muted" center style={{ marginTop: theme.spacing.md }}>
-          {`Already have an account? `}
-          <AppText variant="caption" tone="primary" onPress={() => navigation.navigate('Login')} suppressHighlighting>
-            Sign in
+        <Entrance delay={420}>
+          <AppText variant="caption" tone="muted" center style={{ marginTop: theme.spacing.lg }}>
+            By continuing you agree to Pickky&apos;s Terms of Service and Privacy Policy.
           </AppText>
-        </AppText>
+        </Entrance>
+        <Entrance delay={480}>
+          <AppText variant="caption" tone="muted" center style={{ marginTop: theme.spacing.md }}>
+            {`Already have an account? `}
+            <AppText variant="caption" tone="primary" weight="700" onPress={() => navigation.navigate('Login')} suppressHighlighting>
+              Sign in
+            </AppText>
+          </AppText>
+        </Entrance>
       </ScrollView>
     </Screen>
   );

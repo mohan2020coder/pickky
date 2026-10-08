@@ -1,16 +1,10 @@
-import React, { useRef } from 'react';
-import {
-  ActivityIndicator,
-  Animated,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native';
+import React from 'react';
+import { ActivityIndicator, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
+import { Gradient } from './Gradient';
+import { PressableScale } from './motion';
 
 export type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -46,62 +40,75 @@ const Button = ({
   testID,
 }: ButtonProps) => {
   const theme = useTheme();
-  const scale = useRef(new Animated.Value(1)).current;
   const isDisabled = disabled || loading;
-
-  const animateTo = (value: number) =>
-    Animated.spring(scale, { toValue: value, useNativeDriver: true, speed: 40, bounciness: 4 }).start();
-
-  const palette = {
-    primary: { bg: theme.colors.primary, fg: theme.colors.onPrimary, border: theme.colors.primary },
-    secondary: { bg: theme.colors.surface, fg: theme.colors.textPrimary, border: theme.colors.border },
-    ghost: { bg: 'transparent', fg: theme.colors.primary, border: 'transparent' },
-    danger: { bg: theme.colors.errorSoft, fg: theme.colors.error, border: theme.colors.error },
-    success: { bg: theme.colors.success, fg: '#FFFFFF', border: theme.colors.success },
-  }[variant];
 
   const height = size === 'lg' ? 54 : size === 'md' ? 46 : 38;
   const fontSize = (size === 'lg' ? theme.typography.button.fontSize : theme.typography.label.fontSize) ?? 16;
+  const radius = theme.radius.pill;
+
+  const isSolid = variant === 'primary' || variant === 'success';
+  const fg = isSolid
+    ? theme.colors.onPrimary
+    : variant === 'danger'
+      ? theme.colors.error
+      : variant === 'ghost'
+        ? theme.colors.primary
+        : theme.colors.textPrimary;
+
+  const shadow: ViewStyle | null = variant === 'primary' ? theme.shadows.glow : variant === 'success' ? theme.shadows.medium : null;
+
+  let background: React.ReactNode = null;
+  if (variant === 'primary') {
+    background = <Gradient preset="cta" style={[StyleSheet.absoluteFill, { borderRadius: radius }]} />;
+  } else if (variant === 'success') {
+    background = <Gradient preset="success" style={[StyleSheet.absoluteFill, { borderRadius: radius }]} />;
+  } else if (variant === 'secondary') {
+    background = <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.surfaceSunken }]} />;
+  } else if (variant === 'danger') {
+    background = <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.colors.errorSoft }]} />;
+  }
+
+  const content = loading ? (
+    <ActivityIndicator color={fg} />
+  ) : (
+    <View style={styles.content}>
+      {icon ? <Ionicons name={icon} size={fontSize + 3} color={fg} style={{ marginRight: theme.spacing.sm }} /> : null}
+      <AppText weight="700" color={fg} style={{ fontSize, lineHeight: fontSize + 4 }}>
+        {label}
+      </AppText>
+      {iconRight ? (
+        <Ionicons name={iconRight} size={fontSize + 3} color={fg} style={{ marginLeft: theme.spacing.sm }} />
+      ) : null}
+    </View>
+  );
 
   return (
-    <Animated.View style={[{ transform: [{ scale }] }, fullWidth && { alignSelf: 'stretch' }, style]}>
-      <Pressable
-        testID={testID}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel ?? label}
-        accessibilityState={{ disabled: isDisabled, busy: loading }}
-        disabled={isDisabled}
-        onPressIn={() => animateTo(0.97)}
-        onPressOut={() => animateTo(1)}
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.base,
-          {
-            minHeight: Math.max(height, 44),
-            backgroundColor: palette.bg,
-            borderColor: palette.border,
-            borderWidth: variant === 'secondary' ? 1 : 0,
-            borderRadius: theme.radius.pill,
-            paddingHorizontal: size === 'sm' ? theme.spacing.lg : theme.spacing.xxl,
-            opacity: isDisabled ? 0.55 : pressed ? 0.9 : 1,
-          },
-        ]}
-      >
-        {loading ? (
-          <ActivityIndicator color={palette.fg} />
-        ) : (
-          <View style={styles.content}>
-            {icon ? <Ionicons name={icon} size={fontSize + 3} color={palette.fg} style={{ marginRight: theme.spacing.sm }} /> : null}
-            <AppText weight="700" color={palette.fg} style={{ fontSize, lineHeight: fontSize + 4 }}>
-              {label}
-            </AppText>
-            {iconRight ? (
-              <Ionicons name={iconRight} size={fontSize + 3} color={palette.fg} style={{ marginLeft: theme.spacing.sm }} />
-            ) : null}
-          </View>
-        )}
-      </Pressable>
-    </Animated.View>
+    <PressableScale
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      disabled={isDisabled}
+      onPress={onPress}
+      scaleTo={0.96}
+      pressedOpacity={0.92}
+      style={[
+        styles.base,
+        {
+          minHeight: Math.max(height, 48),
+          borderRadius: radius,
+          paddingHorizontal: size === 'sm' ? theme.spacing.lg : theme.spacing.xxl,
+          opacity: isDisabled ? 0.55 : 1,
+        },
+        variant === 'secondary' && { borderWidth: 1, borderColor: theme.colors.border },
+        shadow,
+        fullWidth && { alignSelf: 'stretch' },
+        style,
+      ]}
+    >
+      {background}
+      {content}
+    </PressableScale>
   );
 };
 
@@ -110,6 +117,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    overflow: 'hidden',
   },
   content: {
     flexDirection: 'row',
@@ -147,13 +155,14 @@ export const IconButton = ({
 }: IconButtonProps) => {
   const theme = useTheme();
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={badge > 0 ? { text: `${badge} unread` } : undefined}
       hitSlop={8}
-      style={({ pressed }) => [
+      scaleTo={0.9}
+      style={[
         {
           width: size,
           height: size,
@@ -163,8 +172,8 @@ export const IconButton = ({
           backgroundColor: background ?? theme.colors.surface,
           borderWidth: background ? 0 : 1,
           borderColor: theme.colors.border,
-          opacity: pressed ? 0.7 : 1,
         },
+        !background && theme.shadows.low,
         style,
       ]}
     >
@@ -173,8 +182,8 @@ export const IconButton = ({
         <View
           style={{
             position: 'absolute',
-            top: 4,
-            right: 4,
+            top: 2,
+            right: 2,
             minWidth: 16,
             height: 16,
             borderRadius: 8,
@@ -182,13 +191,15 @@ export const IconButton = ({
             backgroundColor: theme.colors.error,
             alignItems: 'center',
             justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: theme.colors.surface,
           }}
         >
-          <AppText variant="caption" color="#FFFFFF" weight="800" style={{ fontSize: 10 }}>
+          <AppText variant="caption" color={theme.colors.onPrimary} weight="800" style={{ fontSize: 9 }}>
             {badge > 99 ? '99+' : badge}
           </AppText>
         </View>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 };

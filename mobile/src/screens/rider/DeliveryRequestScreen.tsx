@@ -1,10 +1,21 @@
 import React from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RiderHomeStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Button, Card, Screen, ScreenHeader } from '../../components';
+import {
+  AppText,
+  Button,
+  Card,
+  EmptyView,
+  Entrance,
+  Gradient,
+  LoadingView,
+  Screen,
+  ScreenFooter,
+  ScreenHeader,
+} from '../../components';
 import { useAcceptOffer, useRejectOffer, useRiderOffers } from '../../hooks/queries';
 import { toast } from '../../stores/uiStore';
 import { formatDistance, formatMoney } from '../../utils/format';
@@ -41,136 +52,132 @@ export const DeliveryRequestScreen = ({ navigation, route }: Props) => {
     });
   };
 
+  const RouteRow = ({ icon, label, value, color, connector }: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; value: string; color: string; connector?: boolean }) => (
+    <View style={{ flexDirection: 'row' }}>
+      <View style={{ alignItems: 'center', width: 26 }}>
+        <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: theme.colors.surfaceSunken, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name={icon} size={13} color={color} />
+        </View>
+        {connector ? <View style={{ width: 2, flex: 1, minHeight: 18, backgroundColor: theme.colors.border, marginVertical: 4 }} /> : null}
+      </View>
+      <View style={{ flex: 1, paddingLeft: theme.spacing.md, paddingBottom: connector ? theme.spacing.md : 0 }}>
+        <AppText variant="caption" tone="muted">
+          {label}
+        </AppText>
+        <AppText variant="body" weight="600" numberOfLines={2}>
+          {value}
+        </AppText>
+      </View>
+    </View>
+  );
+
   return (
     <Screen>
       <ScreenHeader title="New delivery request" subtitle="Review the trip before you accept" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {isPending && !offer ? (
-          <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.xl }}>
-            Loading request…
-          </AppText>
-        ) : !offer ? (
-          <Card style={{ alignItems: 'center', marginTop: theme.spacing.lg }}>
-            <Ionicons name="time-outline" size={32} color={theme.colors.textMuted} />
-            <AppText variant="heading3" center style={{ marginTop: theme.spacing.sm }}>
-              This request is gone
-            </AppText>
-            <AppText variant="bodySmall" tone="secondary" center style={{ marginTop: theme.spacing.xs }}>
-              It may have expired or another rider accepted it first.
-            </AppText>
-            <Button
-              label="Close"
-              variant="secondary"
-              size="md"
-              fullWidth={false}
-              style={{ marginTop: theme.spacing.lg }}
-              onPress={() => navigation.goBack()}
-            />
-          </Card>
-        ) : (
-          <Card style={{ marginTop: theme.spacing.sm }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <AppText variant="label" tone="secondary">
-                You earn
-              </AppText>
-              <AppText variant="price" color={theme.colors.primary}>
-                {formatMoney(offer.earnings_minor, offer.currency)}
-              </AppText>
-            </View>
 
-            <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: theme.colors.primarySoft,
-                  borderRadius: theme.radius.pill,
-                  paddingHorizontal: theme.spacing.md,
-                  paddingVertical: 6,
-                }}
-              >
-                <Ionicons name="navigate-outline" size={14} color={theme.colors.primary} style={{ marginRight: 6 }} />
-                <AppText variant="caption" color={theme.colors.primary} weight="700">
-                  {formatDistance(offer.distance_km)}
+      {isPending && !offer ? (
+        <LoadingView label="Loading request…" />
+      ) : !offer ? (
+        <EmptyView
+          icon="time-outline"
+          title="This request is gone"
+          message="It may have expired or another rider accepted it first."
+          actionLabel="Close"
+          onAction={() => navigation.goBack()}
+        />
+      ) : (
+        <>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            <Entrance delay={40}>
+              <Card variant="gradient" gradientPreset="success" style={{ marginTop: theme.spacing.sm }}>
+                <AppText variant="eyebrow" color={theme.colors.textOnGradient} style={{ opacity: 0.9 }}>
+                  You earn
                 </AppText>
-              </View>
-              {offer.package_type ? (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: theme.colors.surfaceElevated,
-                    borderRadius: theme.radius.pill,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: 6,
-                    borderWidth: 1,
-                    borderColor: theme.colors.border,
-                  }}
-                >
-                  <Ionicons name="cube-outline" size={14} color={theme.colors.textSecondary} style={{ marginRight: 6 }} />
-                  <AppText variant="caption" tone="secondary" weight="700">
-                    {offer.package_type}
-                  </AppText>
+                <AppText variant="display" color={theme.colors.textOnGradient} style={{ marginTop: theme.spacing.xs }}>
+                  {formatMoney(offer.earnings_minor, offer.currency)}
+                </AppText>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
+                  <View style={styles.glassPill}>
+                    <Ionicons name="navigate" size={13} color={theme.colors.textOnGradient} />
+                    <AppText variant="caption" color={theme.colors.textOnGradient} weight="800" style={{ marginLeft: 6 }}>
+                      {formatDistance(offer.distance_km)}
+                    </AppText>
+                  </View>
+                  {offer.package_type ? (
+                    <View style={styles.glassPill}>
+                      <Ionicons name="cube" size={13} color={theme.colors.textOnGradient} />
+                      <AppText variant="caption" color={theme.colors.textOnGradient} weight="800" style={{ marginLeft: 6 }}>
+                        {offer.package_type}
+                      </AppText>
+                    </View>
+                  ) : null}
                 </View>
-              ) : null}
-            </View>
+              </Card>
+            </Entrance>
 
-            <View style={{ marginTop: theme.spacing.lg }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="location" size={18} color={theme.colors.success} style={{ marginRight: theme.spacing.sm }} />
-                <View style={{ flex: 1 }}>
-                  <AppText variant="caption" tone="muted">
-                    Pickup
-                  </AppText>
-                  <AppText variant="body">{offer.pickup_addr}</AppText>
-                </View>
-              </View>
-              <View style={{ height: 14, width: 2, backgroundColor: theme.colors.border, marginLeft: 9, marginVertical: 4 }} />
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="flag" size={18} color={theme.colors.error} style={{ marginRight: theme.spacing.sm }} />
-                <View style={{ flex: 1 }}>
-                  <AppText variant="caption" tone="muted">
-                    Drop-off
-                  </AppText>
-                  <AppText variant="body">{offer.dropoff_addr}</AppText>
-                </View>
-              </View>
-            </View>
+            <Entrance delay={120} style={{ marginTop: theme.spacing.lg }}>
+              <Card style={{ marginTop: 0 }}>
+                <AppText variant="label" tone="secondary" style={{ marginBottom: theme.spacing.md }}>
+                  Route
+                </AppText>
+                <RouteRow icon="location" label="Pickup" value={offer.pickup_addr} color={theme.colors.success} connector />
+                <RouteRow icon="flag" label="Drop-off" value={offer.dropoff_addr} color={theme.colors.error} />
+              </Card>
+            </Entrance>
 
-            {offer.customer_rating ? (
-              <AppText variant="caption" tone="muted" style={{ marginTop: theme.spacing.md }}>
-                Customer rating {offer.customer_rating.toFixed(1)} · {formatMoney(offer.earnings_minor, offer.currency)} payout
-              </AppText>
+            {offer.customer_rating != null ? (
+              <Entrance delay={180} style={{ marginTop: theme.spacing.lg }}>
+                <Card style={{ marginTop: 0, flexDirection: 'row', alignItems: 'center' }}>
+                  <Gradient preset="sunset" style={styles.ratingMedallion}>
+                    <Ionicons name="star" size={18} color="#FFFFFF" />
+                  </Gradient>
+                  <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
+                    <AppText variant="label">Customer rating</AppText>
+                    <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
+                      {offer.customer_rating.toFixed(1)} out of 5
+                    </AppText>
+                  </View>
+                </Card>
+              </Entrance>
             ) : null}
-          </Card>
-        )}
-      </ScrollView>
+          </ScrollView>
 
-      {offer ? (
-        <View style={styles.footer}>
-          <Button
-            label="Decline"
-            variant="secondary"
-            size="md"
-            style={{ flex: 1 }}
-            disabled={reject.isPending || accept.isPending}
-            onPress={handleReject}
-          />
-          <Button
-            label="Accept"
-            size="md"
-            style={{ flex: 1 }}
-            loading={accept.isPending}
-            disabled={reject.isPending}
-            onPress={handleAccept}
-          />
-        </View>
-      ) : null}
+          <ScreenFooter>
+            <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+              <Button
+                label="Decline"
+                variant="secondary"
+                size="lg"
+                style={{ flex: 1 }}
+                loading={reject.isPending}
+                onPress={handleReject}
+              />
+              <Button
+                label="Accept"
+                size="lg"
+                style={{ flex: 1 }}
+                loading={accept.isPending}
+                onPress={handleAccept}
+              />
+            </View>
+          </ScreenFooter>
+        </>
+      )}
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 24 },
-  footer: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
+  glassPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  ratingMedallion: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 });

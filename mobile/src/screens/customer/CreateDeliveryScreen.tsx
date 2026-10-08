@@ -1,9 +1,10 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { CustomerHomeStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Screen, ScreenHeader, LocationInput, Button } from '../../components';
+import { AppText, Button, Card, LocationInput, ProgressIndicator, Screen, ScreenFooter, ScreenHeader } from '../../components';
 import { useBookingStore } from '../../stores/bookingStore';
 
 type Props = NativeStackScreenProps<CustomerHomeStackParamList, 'CreateDelivery'>;
@@ -21,34 +22,47 @@ export const CreateDeliveryScreen = ({ navigation }: Props) => {
     <Screen>
       <ScreenHeader title="New pickup" subtitle="Tell us where and where to" onBack={() => navigation.goBack()} />
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: theme.spacing.lg }} keyboardShouldPersistTaps="handled">
-        <LocationInput
-          title="Pickup"
-          value={toLocationValue(pickup)}
-          placeholder="Where should we pick up from?"
-          dotColor={theme.colors.success}
-          onPress={() => navigation.navigate('LocationPicker', { field: 'pickup' })}
-        />
-        <LocationInput
-          title="Destination"
-          value={toLocationValue(dropoff)}
-          placeholder="Where should it go?"
-          dotColor={theme.colors.error}
-          style={{ marginTop: theme.spacing.md }}
-          onPress={() => navigation.navigate('LocationPicker', { field: 'dropoff' })}
-        />
-        <AppText variant="bodySmall" tone="muted" style={{ marginTop: theme.spacing.xl }}>
-          We cover anything you can carry: documents, parcels, groceries, keys, gifts, returns and more.
-        </AppText>
+        <ProgressIndicator progress={1 / 3} label="Step 1 of 3 — Pickup & drop-off" />
+
+        <Card style={{ marginTop: theme.spacing.lg }}>
+          <AppText variant="eyebrow" tone="primary">
+            Your route
+          </AppText>
+          <LocationInput
+            title="Pickup"
+            value={toLocationValue(pickup)}
+            placeholder="Where should we pick up from?"
+            dotColor={theme.colors.success}
+            style={{ marginTop: theme.spacing.md }}
+            onPress={() => navigation.navigate('LocationPicker', { field: 'pickup' })}
+          />
+          <LocationInput
+            title="Destination"
+            value={toLocationValue(dropoff)}
+            placeholder="Where should it go?"
+            dotColor={theme.colors.error}
+            style={{ marginTop: theme.spacing.md }}
+            onPress={() => navigation.navigate('LocationPicker', { field: 'dropoff' })}
+          />
+        </Card>
+
+        <Card variant="soft" style={{ marginTop: theme.spacing.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <Ionicons name="sparkles-outline" size={16} color={theme.colors.primary} style={{ marginTop: 2 }} />
+            <AppText variant="bodySmall" tone="secondary" style={{ flex: 1, marginLeft: theme.spacing.sm }}>
+              We cover anything you can carry: documents, parcels, groceries, keys, gifts, returns and more.
+            </AppText>
+          </View>
+        </Card>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <ScreenFooter>
         <Button label="Continue to package details" disabled={!ready} onPress={() => navigation.navigate('PackageDetails')} />
-      </View>
+      </ScreenFooter>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
   content: { paddingHorizontal: 20 },
-  footer: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
 });

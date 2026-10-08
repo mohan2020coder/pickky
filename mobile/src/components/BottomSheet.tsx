@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
+import { Gradient } from './Gradient';
 
 type BottomSheetProps = {
   visible: boolean;
@@ -43,10 +44,12 @@ export const BottomSheet = ({ visible, onClose, title, children, scroll = true, 
 
   const body = (
     <View style={{ paddingBottom: insets.bottom + theme.spacing.lg }}>
+      <View style={{ alignItems: 'center', paddingTop: theme.spacing.xs, paddingBottom: title ? 0 : theme.spacing.sm }}>
+        <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: theme.colors.borderStrong, opacity: 0.7 }} />
+      </View>
       {title ? (
         <View style={{ alignItems: 'center', paddingBottom: theme.spacing.md }}>
-          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.colors.border }} />
-          <AppText variant="heading3" style={{ marginTop: theme.spacing.md }}>
+          <AppText variant="heading3" weight="800" style={{ marginTop: theme.spacing.md }}>
             {title}
           </AppText>
         </View>
@@ -170,10 +173,15 @@ export const ConfirmDialog = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: pressed ? 0.85 : 1,
+                  overflow: 'hidden',
+                  ...theme.shadows.glow,
                 },
               ]}
             >
-              <AppText variant="label" color="#FFFFFF">
+              {!destructive ? (
+                <Gradient preset="cta" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+              ) : null}
+              <AppText variant="label" color={theme.colors.onPrimary}>
                 {confirmLabel}
               </AppText>
             </Pressable>

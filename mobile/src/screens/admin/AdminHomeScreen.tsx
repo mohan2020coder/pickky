@@ -1,40 +1,14 @@
 import React from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminHomeStackParamList } from '../../navigation/types';
-import { useTheme } from '../../theme';
-import { AppText, Card, Screen, ScreenHeader } from '../../components';
+import { useTheme, GradientPreset } from '../../theme';
+import { AppText, Card, Entrance, Gradient, Screen, ScreenHeader, SectionHeader, Stagger, StatCard } from '../../components';
 import { useAdminOverview } from '../../hooks/queries';
 import { formatMoney } from '../../utils/format';
 
 type Props = NativeStackScreenProps<AdminHomeStackParamList, 'AdminHome'>;
-
-type StatCardProps = {
-  label: string;
-  value: string;
-  hint?: string;
-  onPress?: () => void;
-  accent?: boolean;
-};
-
-const StatCard = ({ label, value, hint, onPress, accent = false }: StatCardProps) => {
-  const theme = useTheme();
-  return (
-    <Card onPress={onPress} style={[styles.stat, accent && { width: '100%' }]}>
-      <AppText variant="caption" tone="secondary">
-        {label}
-      </AppText>
-      <AppText variant="price" color={accent ? theme.colors.primary : theme.colors.textPrimary} style={{ marginTop: theme.spacing.xxs }}>
-        {value}
-      </AppText>
-      {hint ? (
-        <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
-          {hint}
-        </AppText>
-      ) : null}
-    </Card>
-  );
-};
 
 export const AdminHomeScreen = ({ navigation }: Props) => {
   const theme = useTheme();
@@ -44,63 +18,104 @@ export const AdminHomeScreen = ({ navigation }: Props) => {
     navigation.getParent()?.navigate('AdminUsersTab', { screen: 'AdminRiders' });
   };
 
+  const ActionCard = ({
+    icon,
+    label,
+    hint,
+    preset,
+    onPress,
+    accessibilityLabel,
+  }: {
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+    label: string;
+    hint: string;
+    preset: GradientPreset;
+    onPress: () => void;
+    accessibilityLabel: string;
+  }) => (
+    <Card onPress={onPress} accessibilityLabel={accessibilityLabel} style={{ flex: 1 }}>
+      <Gradient
+        preset={preset}
+        style={{ width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing.md, ...theme.shadows.medium }}
+      >
+        <Ionicons name={icon} size={21} color="#FFFFFF" />
+      </Gradient>
+      <AppText variant="label">{label}</AppText>
+      <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
+        {hint}
+      </AppText>
+    </Card>
+  );
+
   return (
     <Screen>
       <ScreenHeader large title="Overview" subtitle="Live operations at a glance" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.grid}>
+        <Stagger step={70} style={styles.grid} itemStyles={[styles.half, styles.half, styles.half, styles.half, styles.full]}>
           <StatCard
+            icon="bicycle"
             label="Active deliveries"
-            value={String(overview?.active_deliveries ?? 0)}
+            value={overview?.active_deliveries ?? 0}
             hint="In progress right now"
+            gradient="primary"
             onPress={() => navigation.navigate('ActiveDeliveries')}
           />
           <StatCard
+            icon="today"
             label="Today's deliveries"
-            value={String(overview?.today_deliveries ?? 0)}
+            value={overview?.today_deliveries ?? 0}
             hint="Created in the last 24h"
+            gradient="ocean"
             onPress={() => navigation.navigate('ActiveDeliveries')}
           />
           <StatCard
+            icon="radio"
             label="Online riders"
-            value={String(overview?.online_riders ?? 0)}
+            value={overview?.online_riders ?? 0}
             hint="Ready to accept jobs"
+            gradient="success"
             onPress={openRiders}
           />
           <StatCard
+            icon="alert-circle"
             label="Pending issues"
-            value={String(overview?.pending_issues ?? 0)}
+            value={overview?.pending_issues ?? 0}
             hint="Open tickets to resolve"
+            gradient="danger"
             onPress={() => navigation.navigate('Issues')}
           />
-        </View>
+          <StatCard
+            accent
+            gradient="sunset"
+            icon="cash"
+            label="Revenue"
+            value={formatMoney(overview?.revenue_minor ?? 0, overview?.currency)}
+            hint="Total collected so far"
+            onPress={() => navigation.navigate('ActiveDeliveries')}
+          />
+        </Stagger>
 
-        <StatCard
-          label="Revenue"
-          value={formatMoney(overview?.revenue_minor ?? 0, overview?.currency)}
-          hint="Total collected so far"
-          accent
-          onPress={() => navigation.navigate('ActiveDeliveries')}
-        />
-
-        <View style={{ flexDirection: 'row', gap: theme.spacing.md, marginTop: theme.spacing.lg }}>
-          <Card onPress={() => navigation.navigate('ActiveDeliveries')} style={{ flex: 1 }} accessibilityLabel="Open deliveries">
-            <AppText variant="label" tone="primary">
-              Deliveries
-            </AppText>
-            <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
-              Search, assign and track
-            </AppText>
-          </Card>
-          <Card onPress={() => navigation.navigate('Issues')} style={{ flex: 1 }} accessibilityLabel="Open issues">
-            <AppText variant="label" tone="error">
-              Issues
-            </AppText>
-            <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
-              Failed and cancelled
-            </AppText>
-          </Card>
-        </View>
+        <Entrance delay={420} style={{ marginTop: theme.spacing.xl }}>
+          <SectionHeader title="Quick actions" />
+          <View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
+            <ActionCard
+              icon="bicycle"
+              label="Deliveries"
+              hint="Search, assign and track"
+              preset="primary"
+              onPress={() => navigation.navigate('ActiveDeliveries')}
+              accessibilityLabel="Open deliveries"
+            />
+            <ActionCard
+              icon="warning"
+              label="Issues"
+              hint="Failed and cancelled"
+              preset="danger"
+              onPress={() => navigation.navigate('Issues')}
+              accessibilityLabel="Open issues"
+            />
+          </View>
+        </Entrance>
       </ScrollView>
     </Screen>
   );
@@ -109,5 +124,6 @@ export const AdminHomeScreen = ({ navigation }: Props) => {
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 32 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  stat: { width: '48%' },
+  half: { width: '48%', marginBottom: 12 },
+  full: { width: '100%', marginBottom: 4 },
 });

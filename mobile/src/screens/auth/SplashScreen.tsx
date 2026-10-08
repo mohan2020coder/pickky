@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme';
-import { AppText } from '../../components';
+import { AppText, Gradient } from '../../components';
 import { config } from '../../config';
 
 export const SplashScreen = () => {
@@ -12,21 +12,32 @@ export const SplashScreen = () => {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 8 }),
+      Animated.timing(opacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 14, bounciness: 10 }),
     ]).start();
   }, [opacity, scale]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Gradient preset="hero" style={StyleSheet.absoluteFill} />
       <Animated.View style={{ opacity, transform: [{ scale }], alignItems: 'center' }}>
-        <View style={[styles.logo, { backgroundColor: theme.colors.primarySoft }]}>
-          <Ionicons name="cube" size={40} color={theme.colors.primary} />
-        </View>
-        <AppText variant="heading1" weight="800" style={{ marginTop: theme.spacing.lg }}>
+        <Gradient
+          preset="cta"
+          style={{
+            width: 96,
+            height: 96,
+            borderRadius: 30,
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...theme.shadows.glow,
+          }}
+        >
+          <Ionicons name="cube" size={48} color={theme.colors.onPrimary} />
+        </Gradient>
+        <AppText variant="display" weight="800" color={theme.colors.onPrimary} center style={{ marginTop: theme.spacing.xl }}>
           {config.appName}
         </AppText>
-        <AppText variant="body" tone="secondary" style={{ marginTop: theme.spacing.xs }}>
+        <AppText variant="heading3" weight="600" color={theme.colors.onPrimary} center style={{ marginTop: theme.spacing.xs, opacity: 0.95 }}>
           You need it. Pickky gets it.
         </AppText>
       </Animated.View>

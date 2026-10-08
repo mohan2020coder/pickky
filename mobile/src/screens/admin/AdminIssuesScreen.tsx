@@ -1,9 +1,10 @@
 import React from 'react';
-import { FlatList, View, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminHomeStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Card, DeliveryCard, Screen, ScreenHeader } from '../../components';
+import { AppText, Badge, Card, DeliveryCard, EmptyView, Entrance, Screen, ScreenHeader } from '../../components';
 import { useAdminDeliveries } from '../../hooks/queries';
 
 type Props = NativeStackScreenProps<AdminHomeStackParamList, 'Issues'>;
@@ -16,10 +17,12 @@ export const AdminIssuesScreen = ({ navigation }: Props) => {
     <Screen>
       <ScreenHeader title="Issues" subtitle="Deliveries that need attention" onBack={() => navigation.goBack()} />
       <View style={{ paddingHorizontal: 20, paddingBottom: theme.spacing.md }}>
-        <Card style={{ padding: theme.spacing.md }}>
-          <AppText variant="bodySmall" tone="secondary">
+        <Card variant="soft" style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="warning" size={18} color={theme.colors.warning} />
+          <AppText variant="bodySmall" tone="secondary" style={{ flex: 1, marginLeft: theme.spacing.sm }}>
             Deliveries that failed or were cancelled.
           </AppText>
+          {!isPending ? <Badge label={`${deliveries.length}`} tone="warning" dot /> : null}
         </Card>
       </View>
 
@@ -29,22 +32,19 @@ export const AdminIssuesScreen = ({ navigation }: Props) => {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           isPending ? null : (
-            <View style={{ alignItems: 'center', paddingVertical: theme.spacing.xl * 2 }}>
-              <AppText variant="heading3" center>
-                No open issues
-              </AppText>
-              <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm }}>
-                Failed and cancelled deliveries will appear here.
-              </AppText>
+            <View style={{ paddingVertical: theme.spacing.xl }}>
+              <EmptyView icon="checkmark-done-circle-outline" title="No open issues" message="Failed and cancelled deliveries will appear here." />
             </View>
           )
         }
-        renderItem={({ item }) => (
-          <DeliveryCard
-            delivery={item}
-            onPress={() => navigation.navigate('DeliveryDetails', { deliveryId: item.id })}
-            style={{ marginBottom: theme.spacing.md }}
-          />
+        renderItem={({ item, index }) => (
+          <Entrance delay={Math.min(index * 40, 240)}>
+            <DeliveryCard
+              delivery={item}
+              onPress={() => navigation.navigate('DeliveryDetails', { deliveryId: item.id })}
+              style={{ marginBottom: theme.spacing.md }}
+            />
+          </Entrance>
         )}
       />
     </Screen>

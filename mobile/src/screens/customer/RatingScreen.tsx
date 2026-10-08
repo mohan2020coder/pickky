@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CustomerFlowStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, AppInput, Button, Chip, RatingStars, Screen, ScreenHeader } from '../../components';
+import { AppText, AppInput, Button, Card, Chip, EntranceFade, RatingStars, Screen, ScreenFooter, ScreenHeader } from '../../components';
 import { useDelivery, useRateDelivery } from '../../hooks/queries';
 import { toast } from '../../stores/uiStore';
 
@@ -34,31 +34,50 @@ export const RatingScreen = ({ navigation, route }: Props) => {
       {
         onSuccess: () => {
           toast('Thanks for your feedback!', { tone: 'success' });
-          navigation.getParent()?.goBack();
+          navigation.popToTop();
         },
         onError: () => toast('We could not submit your rating.', { tone: 'error' }),
       },
     );
   };
 
+  const message =
+    stars === 0
+      ? 'Tap a star to rate'
+      : stars <= 2
+        ? 'Sorry to hear that — tell us what went wrong.'
+        : stars === 3
+          ? 'Good — how could it be better?'
+          : 'Awesome, glad it went well!';
+
   return (
     <Screen>
       <ScreenHeader title="Rate this pickup" subtitle={delivery?.rider?.name ? `You were served by ${delivery.rider.name}` : undefined} onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}>
-        <View style={{ alignItems: 'center', marginTop: theme.spacing.md }}>
-          <RatingStars value={stars} onChange={setStars} size={44} label="Rate your pickup" />
-          <AppText variant="body" tone="secondary" style={{ marginTop: theme.spacing.md }}>
-            {stars === 0
-              ? 'Tap a star to rate'
-              : stars <= 2
-                ? 'Sorry to hear that.'
-                : stars === 3
-                  ? 'Good — how could it be better?'
-                  : 'Awesome, glad it went well!'}
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+        <Card variant="soft" style={{ marginTop: theme.spacing.sm, alignItems: 'center', paddingVertical: theme.spacing.xxl }}>
+          <AppText variant="eyebrow" tone="primary">
+            Your rating
           </AppText>
-        </View>
+          <View style={{ marginTop: theme.spacing.md }}>
+            <RatingStars value={stars} onChange={setStars} size={46} label="Rate your pickup" />
+          </View>
+          {stars > 0 ? (
+            <EntranceFade delay={0} style={{ alignSelf: 'stretch', alignItems: 'center', marginTop: theme.spacing.md }}>
+              <AppText variant="heading3" tone="primary" center>
+                Thank you!
+              </AppText>
+              <AppText variant="bodySmall" tone="secondary" center style={{ marginTop: 4 }}>
+                {message}
+              </AppText>
+            </EntranceFade>
+          ) : (
+            <AppText variant="body" tone="muted" center style={{ marginTop: theme.spacing.md }}>
+              {message}
+            </AppText>
+          )}
+        </Card>
 
-        <AppText variant="label" tone="secondary" style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
+        <AppText variant="eyebrow" tone="muted" style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
           What went well?
         </AppText>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -78,13 +97,9 @@ export const RatingScreen = ({ navigation, route }: Props) => {
         />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <ScreenFooter>
         <Button label="Submit Rating" loading={rate.isPending} onPress={submit} />
-      </View>
+      </ScreenFooter>
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  footer: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
-});

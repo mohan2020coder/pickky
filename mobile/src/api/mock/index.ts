@@ -320,6 +320,9 @@ const mock: MockHandler = async (ctx) => {
         throw new ApiError('This delivery is not waiting for pickup verification.', 409);
       }
       if (payload.otp !== delivery.pickup_otp) throw new ApiError('That code is not correct. Please try again.', 422);
+      if (delivery.status === 'RIDER_ARRIVED_PICKUP') {
+        applyStatus(db, delivery.id, 'PICKUP_VERIFICATION', 'Pickup verification started');
+      }
       applyStatus(db, delivery.id, 'PICKED_UP', 'Pickup verified');
       if (simulatedDeliveries.has(delivery.id)) continueAfterPickup(db, delivery.id);
       return hydrateDelivery(db, delivery);
@@ -333,6 +336,9 @@ const mock: MockHandler = async (ctx) => {
       throw new ApiError('This delivery is not waiting for delivery verification.', 409);
     }
     if (payload.otp !== delivery.delivery_otp) throw new ApiError('That code is not correct. Please try again.', 422);
+    if (delivery.status !== 'DELIVERY_VERIFICATION') {
+      applyStatus(db, delivery.id, 'DELIVERY_VERIFICATION', 'Delivery verification started');
+    }
     applyStatus(db, delivery.id, 'DELIVERED', 'Delivered');
     clearDeliveryTimers(delivery.id);
     return hydrateDelivery(db, delivery);

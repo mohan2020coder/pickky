@@ -3,6 +3,7 @@ import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
+import { Gradient } from './Gradient';
 import { NotificationRecord } from '../types';
 import { formatRelativeTime } from '../utils/format';
 
@@ -37,30 +38,29 @@ export const NotificationItem = ({ notification, onPress, style }: NotificationI
           flexDirection: 'row',
           backgroundColor: unread ? theme.colors.primarySoft : theme.colors.surface,
           borderWidth: 1,
-          borderColor: unread ? theme.colors.primary : theme.colors.border,
+          borderColor: unread ? theme.colors.primary : theme.colors.divider,
           borderRadius: theme.radius.large,
           padding: theme.spacing.lg,
           marginBottom: theme.spacing.md,
           opacity: pressed ? 0.85 : 1,
+          ...theme.shadows.low,
         },
         style,
       ]}
     >
-      <View
+      <Gradient
+        preset={unread ? 'primary' : 'sheen'}
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: theme.colors.surface,
+          width: 42,
+          height: 42,
+          borderRadius: 15,
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: theme.spacing.md,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
         }}
       >
-        <Ionicons name={iconForType(notification.type)} size={18} color={theme.colors.primary} />
-      </View>
+        <Ionicons name={iconForType(notification.type)} size={19} color={unread ? '#FFFFFF' : theme.colors.primary} />
+      </Gradient>
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <AppText variant="label" numberOfLines={1} style={{ flex: 1 }}>

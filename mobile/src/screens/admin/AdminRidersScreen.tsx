@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminUsersStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Avatar, Badge, Button, Card, ReadOnlyRating, Screen, ScreenHeader, SearchInput } from '../../components';
+import { AppText, Avatar, Badge, Button, Card, EmptyView, Entrance, ReadOnlyRating, Screen, ScreenHeader, SearchInput } from '../../components';
 import { useAdminRiders } from '../../hooks/queries';
 import * as adminApi from '../../api/admin';
 import { queryKeys } from '../../constants/queryKeys';
@@ -57,11 +57,22 @@ export const AdminRidersScreen = ({ navigation }: Props) => {
       .finally(() => setBusy(null));
   };
 
+  const onlineCount = riders.filter((r) => r.status === 'ONLINE').length;
+  const verifiedCount = riders.filter((r) => r.is_verified && !r.is_suspended).length;
+  const suspendedCount = riders.filter((r) => r.is_suspended).length;
+
   return (
     <Screen>
       <ScreenHeader title="Riders" subtitle="Approve, suspend and review partners" onBack={() => navigation.goBack()} />
-      <View style={{ paddingHorizontal: 20, paddingBottom: theme.spacing.md }}>
+      <View style={{ paddingHorizontal: 20, paddingBottom: theme.spacing.md, gap: theme.spacing.md }}>
         <SearchInput value={q} onChangeText={setQ} placeholder="Search rider name" />
+        {!isPending && riders.length > 0 ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <Badge label={`${onlineCount} online`} tone="success" dot />
+            <Badge label={`${verifiedCount} verified`} tone="primary" dot />
+            <Badge label={`${suspendedCount} suspended`} tone="error" dot />
+          </View>
+        ) : null}
       </View>
 
       <FlatList
@@ -70,65 +81,74 @@ export const AdminRidersScreen = ({ navigation }: Props) => {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           isPending ? null : (
-            <View style={{ alignItems: 'center', paddingVertical: theme.spacing.xl * 2 }}>
-              <AppText variant="heading3" center>
-                No riders found
-              </AppText>
-              <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm }}>
-                {search ? `Nothing matches “${search}”.` : 'Riders appear here after they sign up.'}
-              </AppText>
+            <View style={{ paddingVertical: theme.spacing.xl }}>
+              <EmptyView icon="people-outline" title="No riders found" message={search ? `Nothing matches “${search}”.` : 'Approved partners will appear here.'} />
             </View>
           )
         }
-        renderItem={({ item }) => (
-          <Card style={{ marginBottom: theme.spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Avatar name={item.name} />
-              <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
-                <AppText variant="label" numberOfLines={1}>
-                  {item.name}
-                </AppText>
-                <AppText variant="caption" tone="muted" numberOfLines={1}>
-                  {[item.vehicle_type, item.license_plate].filter(Boolean).join(' · ') || 'No vehicle added'}
-                </AppText>
-                <View style={{ marginTop: 4 }}>
-                  <ReadOnlyRating value={item.rating} />
+        renderItem={({ item, index }) => (
+          <Entrance delay={Math.min(index * 40, 240)}>
+            <Card style={{ marginBottom: theme.spacing.md }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Avatar name={item.name} ring />
+                <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
+                  <AppText variant="heading3" numberOfLines={1}>
+                    {item.name}
+                  </AppText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    <AppText variant="caption" tone="muted" numberOfLines={1}>
+                      {item.vehicle_type ?? 'No vehicle'}
+                    </AppText>
+                    {item.license_plate ? (
+                      <>
+                        <View style={{ width: 3, height: 3, borderRadius: 2, backgroundColor: theme.colors.border, marginHorizontal: 6 }} />
+                        <AppText variant="caption" tone="muted">
+                          {item.license_plate}
+                        </AppText>
+                      </>
+                    ) : null}
+                  </View>
+                  {item.rating != null ? <ReadOnlyRating value={item.rating} /> : null}
                 </View>
               </View>
-              <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                <Badge label={item.status} tone={item.status === 'ONLINE' ? 'success' : 'neutral'} />
+
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: theme.spacing.md }}>
+                <Badge label={item.status} tone={item.status === 'ONLINE' ? 'success' : 'neutral'} dot />
                 {item.is_suspended ? (
-                  <Badge label="Suspended" tone="error" />
+                  <Badge label="Suspended" tone="error" dot />
                 ) : item.is_verified ? (
-                  <Badge label="Verified" tone="success" />
+                  <Badge label="Verified" tone="success" dot />
                 ) : (
-                  <Badge label="Unverified" tone="warning" />
+                  <Badge label="Pending approval" tone="warning" dot />
                 )}
               </View>
-            </View>
 
-            <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
-              {!item.is_verified ? (
+              <View style={{ flexDirection: 'row', gap: theme.spacing.md, marginTop: theme.spacing.md }}>
+                {!item.is_verified ? (
+                  <Button
+                    label="Approve"
+                    variant="success"
+                    size="md"
+                    icon="checkmark"
+                    style={{ flex: 1 }}
+                    loading={busy?.id === item.id && busy.action === 'approve'}
+                    disabled={busy?.id !== item.id && busy !== null}
+                    onPress={() => approve(item)}
+                  />
+                ) : null}
                 <Button
-                  label="Approve"
-                  size="sm"
+                  label={item.is_suspended ? 'Reactivate' : 'Suspend'}
+                  variant={item.is_suspended ? 'secondary' : 'danger'}
+                  size="md"
+                  icon={item.is_suspended ? 'play' : 'pause'}
                   style={{ flex: 1 }}
-                  loading={busy?.id === item.id && busy.action === 'approve'}
-                  disabled={busy !== null && busy.id !== item.id}
-                  onPress={() => approve(item)}
+                  loading={busy?.id === item.id && busy.action === 'suspend'}
+                  disabled={busy?.id !== item.id && busy !== null}
+                  onPress={() => setSuspension(item, !item.is_suspended)}
                 />
-              ) : null}
-              <Button
-                label={item.is_suspended ? 'Reactivate' : 'Suspend'}
-                variant={item.is_suspended ? 'secondary' : 'danger'}
-                size="sm"
-                style={{ flex: 1 }}
-                loading={busy?.id === item.id && busy.action === 'suspend'}
-                disabled={busy !== null && busy.id !== item.id}
-                onPress={() => setSuspension(item, !item.is_suspended)}
-              />
-            </View>
-          </Card>
+              </View>
+            </Card>
+          </Entrance>
         )}
       />
     </Screen>

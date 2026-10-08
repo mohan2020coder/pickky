@@ -2,7 +2,15 @@ import React, { useEffect } from 'react';
 import { StatusBar, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from '@expo-google-fonts/inter';
 import { ThemeProvider, useTheme } from './theme';
 import { RealtimeProvider } from './websocket/RealtimeProvider';
 import { RootNavigator } from './navigation';
@@ -10,16 +18,7 @@ import { ToastHost } from './components';
 import { config } from './config';
 import { installMockBackend } from './api/mock';
 import { restoreSession } from './auth/session';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 30_000,
-    },
-  },
-});
+import { queryClient } from './queryClient';
 
 if (config.isMock) {
   installMockBackend();
@@ -42,6 +41,17 @@ const AppShell = () => {
 };
 
 export default function App() {
+  // Hold the first frame until Inter is loaded so text never flashes in the
+  // system font (native splash stays visible while we return null).
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+  });
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

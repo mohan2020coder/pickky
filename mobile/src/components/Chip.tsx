@@ -1,9 +1,11 @@
 import React from 'react';
-import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 import { AppText } from './AppText';
+import { Gradient } from './Gradient';
 import { IconName } from './Button';
-import { Ionicons } from '@expo/vector-icons';
+import { PressableScale } from './motion';
 
 type ChipProps = {
   label: string;
@@ -16,39 +18,45 @@ type ChipProps = {
 
 export const Chip = ({ label, selected = false, onPress, icon, small = false, style }: ChipProps) => {
   const theme = useTheme();
-  const backgroundColor = selected ? theme.colors.primary : theme.colors.surface;
   const textColor = selected ? theme.colors.onPrimary : theme.colors.textSecondary;
 
+  const base: ViewStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: theme.radius.pill,
+    minHeight: small ? 34 : 42,
+    paddingHorizontal: small ? theme.spacing.md : theme.spacing.lg,
+    paddingVertical: small ? 6 : theme.spacing.sm,
+    overflow: 'hidden',
+  };
+
+  const row = (
+    <>
+      {icon ? <Ionicons name={icon} size={14} color={textColor} style={{ marginRight: 6 }} /> : null}
+      <AppText variant={small ? 'caption' : 'label'} color={textColor} weight={selected ? '700' : '600'}>
+        {label}
+      </AppText>
+    </>
+  );
+
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityState={{ selected }}
       accessibilityLabel={label}
-      style={({ pressed }) => [
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor,
-          borderWidth: selected ? 0 : 1,
-          borderColor: theme.colors.border,
-          borderRadius: theme.radius.pill,
-          minHeight: small ? 34 : 42,
-          paddingHorizontal: small ? theme.spacing.md : theme.spacing.lg,
-          paddingVertical: small ? 6 : theme.spacing.sm,
-          opacity: pressed ? 0.85 : 1,
-        },
-        style,
-      ]}
+      scaleTo={0.95}
+      pressedOpacity={0.88}
+      style={[base, !selected && { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }, style]}
     >
-      {icon ? <Ionicons name={icon} size={14} color={textColor} style={{ marginRight: 6 }} /> : null}
-      <AppText variant={small ? 'caption' : 'label'} color={textColor}>
-        {label}
-      </AppText>
-    </Pressable>
+      {selected ? <Gradient preset="primary" style={StyleSheetAbsoluteFill} /> : null}
+      {row}
+    </PressableScale>
   );
 };
+
+const StyleSheetAbsoluteFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };
 
 type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info';
 
@@ -78,7 +86,7 @@ export const Badge = ({ label, tone = 'neutral', dot = false }: { label: string;
       accessibilityLabel={`Status: ${label}`}
     >
       {dot ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: palette.fg, marginRight: 6 }} /> : null}
-      <AppText variant="caption" color={palette.fg} weight="700">
+      <AppText variant="caption" color={palette.fg} weight="800">
         {label}
       </AppText>
     </View>

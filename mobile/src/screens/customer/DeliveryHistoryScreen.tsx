@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HistoryStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Chip, DeliveryCard, Screen, ScreenHeader } from '../../components';
+import { AppText, Badge, Chip, DeliveryCard, EmptyView, Screen, ScreenHeader, SkeletonList, Stagger } from '../../components';
 import { useDeliveries } from '../../hooks/queries';
 import { DeliveryStatus } from '../../types';
 import { formatRelativeTime } from '../../utils/format';
@@ -27,7 +27,12 @@ export const DeliveryHistoryScreen = ({ navigation }: Props) => {
 
   return (
     <Screen>
-      <ScreenHeader title="Your deliveries" subtitle="Active and completed pickups" />
+      <ScreenHeader
+        title="Your deliveries"
+        subtitle="Active and completed pickups"
+        onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+        right={<Badge label={isPending ? '…' : `${deliveries.length} total`} tone="primary" />}
+      />
       <View style={{ paddingHorizontal: 20, paddingBottom: theme.spacing.md }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {FILTERS.map((f) => (
@@ -36,33 +41,38 @@ export const DeliveryHistoryScreen = ({ navigation }: Props) => {
         </View>
       </View>
 
-      <FlatList
-        data={deliveries}
-        contentContainerStyle={styles.list}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          isPending ? null : (
-            <View style={{ alignItems: 'center', paddingVertical: theme.spacing.xl * 2 }}>
-              <AppText variant="heading3" center>
-                No deliveries here yet
-              </AppText>
-              <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm }}>
-                Created {filter === 'ALL' ? 'pickups will show up here.' : `pickups with status "${filter}" will show up here.`}
-              </AppText>
-            </View>
-          )
-        }
-        renderItem={({ item }) => (
-          <DeliveryCard delivery={item} onPress={() => navigation.navigate('DeliveryDetails', { deliveryId: item.id })} style={{ marginBottom: theme.spacing.md }} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: theme.spacing.xxl }}>
+        {isPending ? (
+          <SkeletonList rows={4} />
+        ) : deliveries.length === 0 ? (
+          <View style={{ minHeight: 280, justifyContent: 'center' }}>
+            <EmptyView
+              icon="file-tray-outline"
+              title="No deliveries here yet"
+              message={
+                filter === 'ALL'
+                  ? 'Created pickups will show up here.'
+                  : `Pickups with status "${filter}" will show up here.`
+              }
+            />
+          </View>
+        ) : (
+          <Stagger step={70} initialDelay={40} style={{ paddingHorizontal: 20 }}>
+            {deliveries.map((item) => (
+              <DeliveryCard
+                key={item.id}
+                delivery={item}
+                onPress={() => navigation.navigate('DeliveryDetails', { deliveryId: item.id })}
+                style={{ marginBottom: theme.spacing.md }}
+              />
+            ))}
+          </Stagger>
         )}
-      />
-      <AppText variant="caption" tone="muted" center style={{ marginBottom: theme.spacing.lg }}>
-        Updated {formatRelativeTime(new Date().toISOString())}
-      </AppText>
+
+        <AppText variant="caption" tone="muted" center style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.lg }}>
+          Updated {formatRelativeTime(new Date().toISOString())}
+        </AppText>
+      </ScrollView>
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  list: { paddingHorizontal: 20, paddingBottom: 24 },
-});

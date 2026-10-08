@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CustomerFlowStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, Button, Card, OtpInput, Screen, ScreenHeader } from '../../components';
+import { AppText, Button, Card, Gradient, OtpInput, Screen, ScreenFooter, ScreenHeader } from '../../components';
 import { useDelivery, useVerifyDeliveryOtp } from '../../hooks/queries';
 import { toast } from '../../stores/uiStore';
 
@@ -37,37 +37,50 @@ export const PickupVerificationScreen = ({ navigation, route }: Props) => {
   return (
     <Screen>
       <ScreenHeader title="Pickup verification" subtitle="Confirm the pickup to continue" onBack={() => navigation.goBack()} />
-      <View style={styles.content}>
-        <View style={[styles.iconBubble, { backgroundColor: theme.colors.warningSoft }]}>
-          <Ionicons name="key" size={30} color={theme.colors.warning} />
-        </View>
-        <AppText variant="heading2" center style={{ marginTop: theme.spacing.lg }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: theme.spacing.sm, paddingBottom: theme.spacing.xxl, alignItems: 'center' }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Gradient preset="sunset" style={styles.medallion}>
+          <Ionicons name="key" size={32} color="#FFFFFF" />
+        </Gradient>
+
+        <AppText variant="eyebrow" tone="primary" center style={{ marginTop: theme.spacing.lg }}>
+          Confirm handover
+        </AppText>
+        <AppText variant="heading2" weight="800" center style={{ marginTop: theme.spacing.xs }}>
           {delivery?.rider?.name ?? 'Your rider'} is at the pickup
         </AppText>
-        <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm }}>
-          Share this code with your rider to release the item. On Pickky, the code confirms the handover.
+        <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm, maxWidth: 320 }}>
+          Ask your rider for the 4-digit pickup code shown in their Pickky app, then enter it below to release the item.
         </AppText>
 
-        <Card style={{ marginTop: theme.spacing.xl, alignItems: 'center' }} accessibilityLabel="Pickup code">
-          <AppText variant="caption" tone="muted">Pickup code</AppText>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-            <AppText variant="display" weight="800" tone="primary" style={{ letterSpacing: 6 }}>
-              {delivery?.pickup_otp ?? '····'}
-            </AppText>
-          </View>
+        <Card style={{ marginTop: theme.spacing.xl, paddingVertical: theme.spacing.xl, alignSelf: 'stretch' }} accessibilityLabel="Enter pickup code">
+          <AppText variant="eyebrow" tone="muted" center>
+            Pickup code
+          </AppText>
+          <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.xs, marginBottom: theme.spacing.lg }}>
+            The code your rider reads to you
+          </AppText>
+          <OtpInput value={code} onChange={setCode} onComplete={(v) => submit(v)} disabled={verify.isPending} label="Pickup code" />
         </Card>
+      </ScrollView>
 
-        <AppText variant="label" tone="secondary" style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
-          Or enter the code manually
-        </AppText>
-        <OtpInput value={code} onChange={setCode} onComplete={(v) => submit(v)} disabled={verify.isPending} />
-        <Button label="Confirm Pickup" loading={verify.isPending} disabled={code.length < 4} onPress={() => submit(code)} style={{ marginTop: theme.spacing.lg }} />
-      </View>
+      <ScreenFooter>
+        <Button label="Confirm Pickup" loading={verify.isPending} disabled={code.length < 4} onPress={() => submit(code)} />
+      </ScreenFooter>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  content: { flex: 1, paddingHorizontal: 20, alignItems: 'center', paddingTop: 16 },
-  iconBubble: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
+  medallion: {
+    width: 76,
+    height: 76,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
 });

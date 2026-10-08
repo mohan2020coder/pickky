@@ -1,48 +1,52 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme } from '../../theme';
-import { AppText, AppInput, BottomSheet, Button, Card, Chip, Screen, ScreenHeader } from '../../components';
+import { useTheme, GradientPreset } from '../../theme';
+import { AppText, AppInput, Badge, BottomSheet, Button, Card, Chip, EmptyView, Entrance, Gradient, PressableScale, Screen, ScreenHeader } from '../../components';
 import { useTickets, useCreateTicket } from '../../hooks/queries';
 import { toast } from '../../stores/uiStore';
 import type { ProfileStackParamList } from '../../navigation/types';
 import { formatRelativeTime } from '../../utils/format';
+import { SupportTicket } from '../../types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'SupportTickets'>;
 
 const CATEGORIES = ['general', 'delivery', 'payment', 'rider', 'refund'];
 
-const TONE: Record<string, 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info'> = {
+const STATUS_TONE: Record<SupportTicket['status'], 'neutral' | 'primary' | 'success' | 'warning'> = {
   OPEN: 'warning',
   IN_PROGRESS: 'primary',
   RESOLVED: 'success',
   CLOSED: 'neutral',
 };
 
-const TicketBadge = ({ status }: { status: string }) => {
-  const theme = useTheme();
-  const palette: Record<string, { bg: string; fg: string }> = {
-    neutral: { bg: theme.colors.divider, fg: theme.colors.textSecondary },
-    primary: { bg: theme.colors.primarySoft, fg: theme.colors.primary },
-    success: { bg: theme.colors.successSoft, fg: theme.colors.success },
-    warning: { bg: theme.colors.warningSoft, fg: theme.colors.warning },
-    error: { bg: theme.colors.errorSoft, fg: theme.colors.error },
-    info: { bg: theme.colors.infoSoft, fg: theme.colors.info },
-  };
-  const c = palette[TONE[status] ?? 'neutral'];
-  return (
-    <View style={{ backgroundColor: c.bg, borderRadius: theme.radius.pill, paddingHorizontal: theme.spacing.md, paddingVertical: 5, flexDirection: 'row', alignItems: 'center' }}>
-      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.fg, marginRight: 6 }} />
-      <AppText variant="caption" color={c.fg} weight="700">
-        {status.replace('_', ' ')}
-      </AppText>
-    </View>
-  );
+const PRIORITY_TONE: Record<SupportTicket['priority'], 'neutral' | 'warning' | 'error'> = {
+  LOW: 'neutral',
+  MEDIUM: 'warning',
+  HIGH: 'error',
+};
+
+const CATEGORY_ICON: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+  general: 'chatbubble-outline',
+  delivery: 'cube-outline',
+  payment: 'card-outline',
+  rider: 'bicycle-outline',
+  refund: 'cash-outline',
+};
+
+const CATEGORY_GRADIENT: Record<string, GradientPreset> = {
+  general: 'primary',
+  delivery: 'ocean',
+  payment: 'sunset',
+  rider: 'hero',
+  refund: 'success',
 };
 
 export const SupportTicketsScreen = ({ navigation }: Props) => {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: tickets = [] } = useTickets();
   const create = useCreateTicket();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -70,52 +74,83 @@ export const SupportTicketsScreen = ({ navigation }: Props) => {
     );
   };
 
+  const openNewTicket = () => setSheetOpen(true);
+
   return (
     <Screen>
       <ScreenHeader
         title="Support tickets"
         subtitle="Reach a human when something goes wrong"
         onBack={() => navigation.goBack()}
-        right={<Button label="New" variant="ghost" size="sm" icon="add" onPress={() => setSheetOpen(true)} />}
+        right={<Button label="New" variant="ghost" size="sm" icon="add" onPress={openNewTicket} />}
       />
       <FlatList
         data={tickets}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, tickets.length === 0 ? styles.listEmpty : null]}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingVertical: theme.spacing.xl * 2 }}>
-            <Ionicons name="chatbubbles-outline" size={40} color={theme.colors.textMuted} />
-            <AppText variant="heading3" center style={{ marginTop: theme.spacing.md }}>No tickets yet</AppText>
-            <AppText variant="body" tone="secondary" center style={{ marginTop: theme.spacing.sm }}>
-              If anything went wrong with a pickup, create a ticket and we will help.
-            </AppText>
-          </View>
+          <EmptyView
+            icon="chatbubbles-outline"
+            title="No tickets yet"
+            message="If anything went wrong with a pickup, create a ticket and we will help."
+            actionLabel="New ticket"
+            onAction={openNewTicket}
+          />
         }
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
+          const itemCategory = item.category ?? 'general';
           return (
-            <Card style={{ marginBottom: theme.spacing.md }}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <View style={{ flex: 1, paddingRight: theme.spacing.md }}>
-                  <AppText variant="label" numberOfLines={1}>{item.subject}</AppText>
-                  <AppText variant="caption" tone="muted" style={{ marginTop: 2 }}>
-                    {item.reference} · {formatRelativeTime(item.created_at)}
-                  </AppText>
+            <Entrance delay={Math.min(index, 8) * 60}>
+              <Card style={{ marginBottom: theme.spacing.md }} accessibilityLabel={`Ticket ${item.subject}`}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                  <Gradient
+                    preset={CATEGORY_GRADIENT[itemCategory] ?? 'primary'}
+                    style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: theme.spacing.md }}
+                  >
+                    <Ionicons name={CATEGORY_ICON[itemCategory] ?? 'chatbubble-outline'} size={20} color="#FFFFFF" />
+                  </Gradient>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <AppText variant="label" weight="800" numberOfLines={1} style={{ flex: 1, paddingRight: theme.spacing.sm }}>
+                        {item.subject}
+                      </AppText>
+                      <AppText variant="caption" tone="muted">
+                        {formatRelativeTime(item.created_at)}
+                      </AppText>
+                    </View>
+                    <AppText variant="bodySmall" tone="secondary" numberOfLines={2} style={{ marginTop: theme.spacing.xs }}>
+                      {item.last_message ?? 'No messages yet.'}
+                    </AppText>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
+                      <Badge dot label={item.status.replace('_', ' ')} tone={STATUS_TONE[item.status]} />
+                      <Badge label={item.priority} tone={PRIORITY_TONE[item.priority]} />
+                      {item.unread_count ? <Badge dot label={`${item.unread_count} new`} tone="error" /> : null}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}>
+                        <Ionicons name="pricetag-outline" size={12} color={theme.colors.textMuted} style={{ marginRight: 4 }} />
+                        <AppText variant="caption" tone="muted">
+                          {itemCategory} · {item.reference}
+                        </AppText>
+                      </View>
+                    </View>
+                  </View>
                 </View>
-                <TicketBadge status={item.status} />
-              </View>
-              <AppText variant="bodySmall" tone="secondary" numberOfLines={2} style={{ marginTop: theme.spacing.sm }}>
-                {item.last_message ?? 'No messages yet.'}
-              </AppText>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: theme.spacing.md }}>
-                <Ionicons name="flag-outline" size={14} color={theme.colors.textMuted} style={{ marginRight: 6 }} />
-                <AppText variant="caption" tone="muted">
-                  {item.category ?? 'general'} · {item.priority}
-                </AppText>
-              </View>
-            </Card>
+              </Card>
+            </Entrance>
           );
         }}
       />
+
+      <PressableScale
+        onPress={openNewTicket}
+        accessibilityRole="button"
+        accessibilityLabel="Create a new support ticket"
+        scaleTo={0.92}
+        style={[styles.fab, { bottom: insets.bottom + theme.spacing.xl, ...theme.shadows.floating }]}
+      >
+        <Gradient preset="cta" style={StyleSheet.absoluteFill} />
+        <Ionicons name="add" size={28} color={theme.colors.onPrimary} />
+      </PressableScale>
 
       <BottomSheet
         visible={sheetOpen}
@@ -139,5 +174,16 @@ export const SupportTicketsScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 20, paddingBottom: 24 },
+  list: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 96 },
+  listEmpty: { flexGrow: 1, justifyContent: 'center' },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

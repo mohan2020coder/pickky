@@ -32,7 +32,8 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(!!secureTextEntry);
 
-  const borderColor = error ? theme.colors.error : focused ? theme.colors.primary : theme.colors.border;
+  const borderColor = error ? theme.colors.error : focused ? theme.colors.primary : 'transparent';
+  const iconTile = focused || !!leftIcon;
 
   return (
     <View style={[{ marginBottom: theme.spacing.lg }, containerStyle]}>
@@ -42,24 +43,31 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
         </AppText>
       ) : null}
       <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          borderWidth: focused ? 2 : 1,
-          borderColor,
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.radius.medium,
-          minHeight: 52,
-          paddingHorizontal: theme.spacing.lg,
-        }}
+        style={[
+          styles.field,
+          {
+            borderColor,
+            backgroundColor: theme.colors.surfaceSunken,
+            shadowColor: theme.colors.primary,
+            shadowOpacity: focused ? 0.18 : 0,
+            shadowRadius: focused ? 12 : 0,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: focused ? 3 : 0,
+          },
+        ]}
       >
         {leftIcon ? (
-          <Ionicons
-            name={leftIcon}
-            size={18}
-            color={focused ? theme.colors.primary : theme.colors.textMuted}
-            style={{ marginRight: theme.spacing.sm }}
-          />
+          <View
+            style={[
+              styles.iconTile,
+              {
+                backgroundColor: iconTile && focused ? theme.colors.primarySoft : theme.colors.surface,
+                marginRight: theme.spacing.sm,
+              },
+            ]}
+          >
+            <Ionicons name={leftIcon} size={17} color={focused ? theme.colors.primary : theme.colors.textMuted} />
+          </View>
         ) : null}
         <TextInput
           ref={ref}
@@ -89,9 +97,12 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
         ) : null}
       </View>
       {error ? (
-        <AppText variant="caption" tone="error" style={{ marginTop: theme.spacing.xs }} accessibilityRole="alert">
-          {error}
-        </AppText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: theme.spacing.xs }}>
+          <Ionicons name="alert-circle" size={13} color={theme.colors.error} style={{ marginRight: 4 }} />
+          <AppText variant="caption" tone="error" accessibilityRole="alert">
+            {error}
+          </AppText>
+        </View>
       ) : hint ? (
         <AppText variant="caption" tone="muted" style={{ marginTop: theme.spacing.xs }}>
           {hint}
@@ -112,20 +123,16 @@ export const SearchInput = ({ containerStyle, onClear, value, ...rest }: SearchI
   return (
     <View
       style={[
+        styles.field,
         {
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: theme.colors.surface,
-          borderRadius: theme.radius.pill,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.surfaceSunken,
+          borderColor: 'transparent',
           minHeight: 48,
-          paddingHorizontal: theme.spacing.lg,
         },
         containerStyle,
       ]}
     >
-      <Ionicons name="search-outline" size={18} color={theme.colors.textMuted} />
+      <Ionicons name="search" size={18} color={theme.colors.textMuted} />
       <TextInput
         value={value}
         placeholderTextColor={theme.colors.textMuted}
@@ -149,9 +156,24 @@ export const SearchInput = ({ containerStyle, onClear, value, ...rest }: SearchI
 };
 
 const styles = StyleSheet.create({
+  field: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    minHeight: 54,
+    paddingHorizontal: 14,
+  },
+  iconTile: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   input: {
     flex: 1,
     paddingVertical: 14,
-    fontWeight: '400',
+    fontWeight: '500',
   },
 });

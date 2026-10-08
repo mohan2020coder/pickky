@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthStackParamList } from '../../navigation/types';
-import { AppText, AppInput, Button, ScreenHeader, Screen, Chip } from '../../components';
+import {
+  AppText,
+  AppInput,
+  Button,
+  ScreenHeader,
+  Screen,
+  Chip,
+  EntranceTop,
+  Entrance,
+  Gradient,
+  Card,
+} from '../../components';
 import { useTheme } from '../../theme';
 import { login } from '../../api/auth';
 import { startSession } from '../../auth/session';
@@ -52,7 +64,22 @@ export const LoginScreen = ({ navigation, route }: Props) => {
   return (
     <Screen>
       <ScreenHeader title="Welcome back" subtitle="Sign in to Pickky" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xxxl }} keyboardShouldPersistTaps="handled">
+        <EntranceTop delay={0}>
+          <Card variant="glass" padded style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.lg }}>
+            <Gradient preset="cta" style={{ width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="cube" size={24} color={theme.colors.onPrimary} />
+            </Gradient>
+            <View style={{ marginLeft: theme.spacing.md, flex: 1 }}>
+              <AppText variant="eyebrow" tone="primary" weight="800">
+                WELCOME BACK
+              </AppText>
+              <AppText variant="heading3" weight="800" style={{ marginTop: 2 }}>
+                Pickky
+              </AppText>
+            </View>
+          </Card>
+        </EntranceTop>
         <Controller
           control={control}
           name="identifier"
@@ -87,36 +114,45 @@ export const LoginScreen = ({ navigation, route }: Props) => {
           )}
         />
 
-        <Button label="Sign In" loading={loading} onPress={handleSubmit(onSubmit)} style={{ marginTop: theme.spacing.sm }} />
+        <Entrance delay={120}>
+          <Button label="Sign In" loading={loading} iconRight="arrow-forward" onPress={handleSubmit(onSubmit)} style={{ marginTop: theme.spacing.sm }} />
+        </Entrance>
 
-        <AppText variant="bodySmall" tone="primary" center style={{ marginTop: theme.spacing.md }}>
-          <AppText variant="bodySmall" tone="primary" onPress={() => navigation.navigate('ForgotPassword')} suppressHighlighting>
-            Forgot password?
+        <Entrance delay={180}>
+          <AppText variant="bodySmall" tone="primary" center style={{ marginTop: theme.spacing.md }}>
+            <AppText variant="bodySmall" tone="primary" onPress={() => navigation.navigate('ForgotPassword')} suppressHighlighting>
+              Forgot password?
+            </AppText>
           </AppText>
-        </AppText>
+        </Entrance>
 
-        <AppText variant="label" tone="muted" style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
-          Quick demo accounts
-        </AppText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {DEMO_ACCOUNTS.map((acct) => (
-            <Chip
-              key={acct.label}
-              label={`${acct.label} · ${acct.phone}`}
-              onPress={() => {
-                setValue('identifier', acct.phone, { shouldValidate: true });
-                setValue('password', acct.password, { shouldValidate: true });
-              }}
-            />
-          ))}
-        </ScrollView>
-
-        <AppText variant="caption" tone="muted" style={{ marginTop: theme.spacing.lg }}>
-          {`New to Pickky? `}
-          <AppText variant="caption" tone="primary" onPress={() => navigation.navigate('Register')} suppressHighlighting>
-            Create an account
+        <Entrance delay={240}>
+          <AppText variant="label" tone="muted" style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
+            Quick demo accounts
           </AppText>
-        </AppText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {DEMO_ACCOUNTS.map((acct) => (
+              <Chip
+                key={acct.label}
+                selected
+                label={`${acct.label} · ${acct.phone}`}
+                onPress={() => {
+                  setValue('identifier', acct.phone, { shouldValidate: true });
+                  setValue('password', acct.password, { shouldValidate: true });
+                }}
+              />
+            ))}
+          </ScrollView>
+        </Entrance>
+
+        <Entrance delay={300}>
+          <AppText variant="caption" tone="muted" center style={{ marginTop: theme.spacing.xl }}>
+            {`New to Pickky? `}
+            <AppText variant="caption" tone="primary" weight="700" onPress={() => navigation.navigate('Register')} suppressHighlighting>
+              Create an account
+            </AppText>
+          </AppText>
+        </Entrance>
       </ScrollView>
     </Screen>
   );

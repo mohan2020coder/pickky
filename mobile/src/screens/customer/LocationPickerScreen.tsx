@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomerHomeStackParamList } from '../../navigation/types';
 import { useTheme } from '../../theme';
-import { AppText, AppInput, Card, Chip, Screen, ScreenHeader, InlineLoader, EmptyView } from '../../components';
+import { AppText, AppInput, Card, Chip, ProgressIndicator, Screen, ScreenHeader, InlineLoader, EmptyView } from '../../components';
 import { useBookingStore } from '../../stores/bookingStore';
 import { useSavedAddresses } from '../../hooks/queries';
 import { searchLocations } from '../../api/deliveries';
@@ -96,6 +96,9 @@ export const LocationPickerScreen = ({ navigation, route }: Props) => {
       />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={{ paddingHorizontal: 20 }}>
+          <View style={{ marginBottom: theme.spacing.lg }}>
+            <ProgressIndicator progress={1 / 3} label="Step 1 of 3 — Choose a location" />
+          </View>
           <AppInput
             placeholder="Search for an address or area"
             leftIcon="search-outline"
@@ -150,7 +153,7 @@ export const LocationPickerScreen = ({ navigation, route }: Props) => {
               query.trim().length >= 3 ? (
                 <EmptyView icon="search-outline" title="No results" message="Try a different address, area or landmark." />
               ) : (
-                <AppText variant="label" tone="muted" style={{ marginBottom: theme.spacing.sm }}>
+                <AppText variant="eyebrow" tone="muted" style={{ marginBottom: theme.spacing.sm }}>
                   Saved addresses
                 </AppText>
               )
